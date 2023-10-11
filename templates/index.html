@@ -3,21 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video Links</title>
+    <title>Text to Speech Converter</title>
 </head>
 <body>
-    <h1>Video Links</h1>
-    <button onclick="window.location.href='/video/1'">Video 1</button>
-    <button onclick="window.location.href='/video/2'">Video 2</button>
-    <button onclick="window.location.href='/video/3'">Video 3</button>
-    <button onclick="window.location.href='/video/4'">Video 4</button>
-    <button onclick="window.location.href='/video/5'">Video 5</button>
+    <h1>Text to Speech Converter</h1>
+    <form action="/convert" method="post">
+        <label for="voice_id">Voice ID:</label>
+        <input type="text" id="voice_id" name="voice_id" required><br>
+        <label for="text">Text:</label>
+        <textarea id="text" name="text" rows="4" cols="50" required></textarea><br>
+        <button type="submit">Convert</button>
+    </form>
+    {% if message %}
+        <p>{{ message }}</p>
+        <audio controls>
+            <source src="static/output.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+    {% endif %}
+    <table border="1">
+        <tr>
+            <th>Voice ID</th>
+            <th>Name</th>
+            <!-- Add more table headers based on your JSON structure -->
+        </tr>
+        {% for voice in voices %}
+        <tr>
+            <td>{{ voice.voice_id }}</td>
+            <td>{{ voice.name }}</td>
+            <!-- Add more table cells based on your JSON structure -->
+        </tr>
+        {% endfor %}
+    </table>
 </body>
 </html>
-
-
-
-
-
-
-
