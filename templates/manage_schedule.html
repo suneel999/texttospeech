@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Available Dates & Times</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('appointments') }}">Appointments Dashboard</a>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="ml-auto d-flex">
+                <a href="{{ url_for('manage_schedule') }}" class="btn btn-primary mx-2">Change Date/Time Slots</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger mx-2">Logout</a>
+            </div>
+        </div>
+    </div>
+</nav>
+    <div class="container mt-5">
+        <h1 class="text-center">Manage Available Dates & Times</h1>
+
+        <!-- Form to add a new date -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2 class="mb-0">Available Dates</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" class="form-inline mb-3">
+                    <div class="form-group mr-2">
+                        <label for="new_date" class="sr-only">New Date (YYYY-MM-DD):</label>
+                        <input type="date" name="new_date" id="new_date" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Date</button>
+                </form>
+
+                <!-- List of existing dates with delete option -->
+                <ul class="list-group">
+                    {% for date in dates %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ date['available_date'] }}
+                        <a href="{{ url_for('delete_date', date_id=date['id']) }}" class="btn btn-danger btn-sm">Delete</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Form to add a new time -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h2 class="mb-0">Available Times</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" class="form-inline mb-3">
+                    <div class="form-group mr-2">
+                        <label for="new_time" class="sr-only">New Time (e.g., 10:00 AM):</label>
+                        <input type="text" name="new_time" id="new_time" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Time</button>
+                </form>
+
+                <!-- List of existing times with delete option -->
+                <ul class="list-group">
+                    {% for time in times %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ time['available_time'] }}
+                        <a href="{{ url_for('delete_time', time_id=time['id']) }}" class="btn btn-danger btn-sm">Delete</a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
