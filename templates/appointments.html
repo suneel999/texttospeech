@@ -68,21 +68,21 @@
                     </thead>
                     <tbody>
                         {% for appointment in appointments if appointment.status == 'Pending' %}
-                        <tr>
-                            <td>{{ loop.index }}</td>
-                            <td>{{ appointment.name }}</td>
-                            <td>{{ appointment.sender }}</td>
-                            <td>{{ appointment.email }}</td>
-                            <td>{{ appointment.department_name }}</td>
-                            <td>{{ appointment.doctor }}</td>
-                            <td>{{ appointment.selected_date }}</td>
-                            <td>{{ appointment.selected_time }}</td>
-                            <td>
-                                <button class="btn btn-success" onclick="updateStatus({{ appointment.id }}, 'Confirmed')">Confirm</button>
-                                <button class="btn btn-warning" onclick="updateStatus({{ appointment.id }}, 'Postponed')">Postpone</button>
-                                <button class="btn btn-danger" onclick="updateStatus({{ appointment.id }}, 'Deleted')">Delete</button>
-                            </td>
-                        </tr>
+                           <tr>
+                                <td>{{ appointment['id'] }}</td>
+                                <td>{{ appointment['name'] }}</td>
+                                <td>{{ appointment['phone_number'] }}</td>
+                                <td>{{ appointment['email'] }}</td>
+                                <td>{{ appointment['department'] }}</td>
+                                <td>{{ appointment['doctor'] }}</td>
+                                <td>{{ appointment['appointment_date'] }}</td>
+                                <td>{{ appointment['appointment_time'] }}</td>
+                                <td>
+                                    <button class="btn btn-success" onclick="updateStatus({{ appointment['id'] }}, 'Confirmed')">Confirm</button>
+                                    <button class="btn btn-warning" onclick="updateStatus({{ appointment['id'] }}, 'Postponed')">Postpone</button>
+                                    <button class="btn btn-danger" onclick="updateStatus({{ appointment['id'] }}, 'Deleted')">Delete</button>
+                                </td>
+                            </tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -106,16 +106,17 @@
                     </thead>
                     <tbody>
                         {% for appointment in appointments if appointment.status == 'Confirmed' %}
-                        <tr>
-                            <td>{{ loop.index }}</td>
-                            <td>{{ appointment.name }}</td>
-                            <td>{{ appointment.sender }}</td>
-                            <td>{{ appointment.email }}</td>
-                            <td>{{ appointment.department_name }}</td>
-                            <td>{{ appointment.doctor }}</td>
-                            <td>{{ appointment.selected_date }}</td>
-                            <td>{{ appointment.selected_time }}</td>
-                        </tr>
+                            <tr>
+                                <td>{{ appointment['id'] }}</td>
+                                <td>{{ appointment['name'] }}</td>
+                                <td>{{ appointment['phone_number'] }}</td>
+                                <td>{{ appointment['email'] }}</td>
+                                <td>{{ appointment['department'] }}</td>
+                                <td>{{ appointment['doctor'] }}</td>
+                                <td>{{ appointment['appointment_date'] }}</td>
+                                <td>{{ appointment['appointment_time'] }}</td>
+                                
+                            </tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -140,15 +141,16 @@
                     <tbody>
                         {% for appointment in appointments if appointment.status == 'Postponed' %}
                         <tr>
-                            <td>{{ loop.index }}</td>
-                            <td>{{ appointment.name }}</td>
-                            <td>{{ appointment.sender }}</td>
-                            <td>{{ appointment.email }}</td>
-                            <td>{{ appointment.department_name }}</td>
-                            <td>{{ appointment.doctor }}</td>
-                            <td>{{ appointment.selected_date }}</td>
-                            <td>{{ appointment.selected_time }}</td>
-                        </tr>
+                            <td>{{ appointment['id'] }}</td>
+                                <td>{{ appointment['name'] }}</td>
+                                <td>{{ appointment['phone_number'] }}</td>
+                                <td>{{ appointment['email'] }}</td>
+                                <td>{{ appointment['department'] }}</td>
+                                <td>{{ appointment['doctor'] }}</td>
+                                <td>{{ appointment['appointment_date'] }}</td>
+                                <td>{{ appointment['appointment_time'] }}</td>
+                                
+                            </tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -172,16 +174,17 @@
                     </thead>
                     <tbody>
                         {% for appointment in appointments if appointment.status == 'Deleted' %}
-                        <tr>
-                            <td>{{ loop.index }}</td>
-                            <td>{{ appointment.name }}</td>
-                            <td>{{ appointment.sender }}</td>
-                            <td>{{ appointment.email }}</td>
-                            <td>{{ appointment.department_name }}</td>
-                            <td>{{ appointment.doctor }}</td>
-                            <td>{{ appointment.selected_date }}</td>
-                            <td>{{ appointment.selected_time }}</td>
-                        </tr>
+                         <tr>
+                                <td>{{ appointment['id'] }}</td>
+                                <td>{{ appointment['name'] }}</td>
+                                <td>{{ appointment['phone_number'] }}</td>
+                                <td>{{ appointment['email'] }}</td>
+                                <td>{{ appointment['department'] }}</td>
+                                <td>{{ appointment['doctor'] }}</td>
+                                <td>{{ appointment['appointment_date'] }}</td>
+                                <td>{{ appointment['appointment_time'] }}</td>
+                                
+                            </tr>
                         {% endfor %}
                     </tbody>
                 </table>
