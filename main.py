@@ -514,7 +514,7 @@ def send_appointment_summary(sender):
     connection = get_db_connection()
     cursor = connection.cursor()
 
-    # Insert the appointment data into the database
+    # Insert the appointment data into the PostgreSQL database
     insert_query = """
             INSERT INTO appointments (sender, name, email, department_name, doctor, selected_date, selected_time, language)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
@@ -534,6 +534,8 @@ def send_appointment_summary(sender):
     connection.commit()  # Commit the transaction
     cursor.close()
     connection.close()
+
+    # Generate the appointment summary
     summary = (
         f"{get_translated_text('Appointment Summary:', session['language'])}\n"
         f"{get_translated_text('Name:', session['language'])} {session['name']}\n"
@@ -543,8 +545,12 @@ def send_appointment_summary(sender):
         f"{get_translated_text('Date:', session['language'])} {session['selected_date']}\n"
         f"{get_translated_text('Time:', session['language'])} {session['selected_time']}\n"
     )
+
+    # Send appointment summary and confirmation message
     send_message(sender, summary)
-    send_message(sender, get_translated_text("Please confirm your appointment by replying 'Confirm' or reply 'Edit' to make changes.", session["language"]))
+    send_message(sender, get_translated_text(
+        "Please confirm your appointment by replying 'Confirm' or reply 'Edit' to make changes.", session["language"]))
+
 def fetch_available_dates_for_whatsapp():
     conn = get_db_connection()
     cursor = conn.cursor()
