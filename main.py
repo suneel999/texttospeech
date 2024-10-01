@@ -511,28 +511,28 @@ def send_time_list(sender, times):
 
 def send_appointment_summary(sender):
     session = user_sessions[sender]
-    connection = get_db_connection()  # Make sure this gets a PostgreSQL connection
+    connection = get_db_connection()  # PostgreSQL connection
     cursor = connection.cursor()
 
-    # Insert the appointment data into the PostgreSQL database
+    # Updated Insert Query to match your table structure
     insert_query = """
-        INSERT INTO appointments (sender, name, email, department_name, doctor, selected_date, selected_time, language)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO appointments (name, email, appointment_date, appointment_time, department, doctor, language, phone_number)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     """
     appointment_data = (
-        sender,
-        session['name'],
-        session['email'],
-        session['department_name'],
-        session['doctor'],
-        session['selected_date'],
-        session['selected_time'],
-        session['language']
+        session['name'],                     # Name
+        session['email'],                    # Email
+        session['selected_date'],            # Appointment Date
+        session['selected_time'],            # Appointment Time
+        session['department_name'],          # Department
+        session['doctor'],                   # Doctor
+        session['language'],                 # Language
+        session.get('sender', None)    # Phone Number (optional if not collected)
     )
 
     try:
         cursor.execute(insert_query, appointment_data)
-        connection.commit()  # Commit the transaction to save the data
+        connection.commit()  # Commit the transaction
         print("Appointment data inserted successfully")  # Debugging info
     except Exception as e:
         print("Error inserting appointment data:", e)  # Error logging
@@ -555,6 +555,7 @@ def send_appointment_summary(sender):
     # Send the summary to the user
     send_message(sender, summary)
     send_message(sender, get_translated_text("Please confirm your appointment by replying 'Confirm' or reply 'Edit' to make changes.", session["language"]))
+
 
 
 def fetch_available_dates_for_whatsapp():
