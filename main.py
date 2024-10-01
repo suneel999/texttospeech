@@ -1,71 +1,91 @@
-from flask import Flask, render_template, request
+from flask import Flask, request, jsonify
 import requests
-import pandas as pd
-import json
+import os
+
 app = Flask(__name__)
-url = "https://api.elevenlabs.io/v1/voices"
 
-headers = {
-  "Accept": "application/json",
-  "xi-api-key": "e327fdf320043677a512f1b0dade8403"
-}
+# Set environment variables for verification token, Graph API token, and port
+WEBHOOK_VERIFY_TOKEN = os.environ.get("WEBHOOK_VERIFY_TOKEN", "tested")  # Replace with your verification token
+GRAPH_API_TOKEN = os.environ.get("GRAPH_API_TOKEN", "EAAXbZCUeswOkBOZC4tCKZC8nLikcuyCaYsIV42mbCM2ZAstdEInKdznGUyFIbqaWNN0Lv8awm7gJXZABpa3ROCcpa1zxZAJpTVL7c0AHqWr80l76McE5hC9QiH1UhNHC0TDt4AKWdbBAygsa6CCHF6tzZBzROpZAFE4cVTLJtTo7pdYr3ynLEFkWvSSfWIubhTrL3wCqC3hAi35kxaP6Psx4ZBmbgcS44guxxYmlody0c62AZD")  # Replace with your Graph API token
+PORT = os.environ.get("PORT", 5000)  # Default port is 5000
 
-response = requests.get(url, headers=headers)
-json_response = response.text
-data = json.loads(json_response)
+# Handle incoming webhook POST requests
+@app.route("/webhook", methods=["POST"])
+def handle_webhook():
+    data = request.json
+    print("Incoming webhook message:", data)  # Log incoming message for debugging
 
-# Extract the 'voices' data
-voices = data.get('voices', [])
+    # Extract the message if it exists
+    message = (data.get("entry", [{}])[0]
+                   .get("changes", [{}])[0]
+                   .get("value", {})
+                   .get("messages", [{}])[0])
 
-# Convert the data into a DataFrame
-df = pd.DataFrame(voices)
-@app.route('/')
-def index():
-    data = json.loads(json_response)
-    voices = data.get('voices', [])
-    return render_template('index.html', voices=voices)
+    # Check if a valid message exists and contains text
+    if message and message.get("type") == "text":
+        # Extract business phone number ID to send the reply from
+        business_phone_number_id = (data.get("entry", [{}])[0]
+                                       .get("changes", [{}])[0]
+                                       .get("value", {})
+                                       .get("metadata", {})
+                                       .get("phone_number_id"))
 
+        if not business_phone_number_id:
+            print("No business phone number ID found in the request.")
+            return jsonify({"error": "No business phone number ID found"}), 400
 
-@app.route('/convert', methods=['POST'])
-def convert():
-    voice_id = request.form['voice_id']
-    text = request.form['text']
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
-
-    headers = {
-        "Accept": "audio/mpeg",
-        "Content-Type": "application/json",
-        "xi-api-key": "e327fdf320043677a512f1b0dade8403"  # Replace with your actual API key
-    }
-
-    data = {
-        "text": text,
-        "model_id": "eleven_monolingual_v1",
-        "voice_settings": {
-            "stability": 0.5,
-            "similarity_boost": 0.5
+        # Send a reply message
+        reply_url = f"https://graph.facebook.com/v20.0/{business_phone_number_id}/messages"
+        reply_headers = {
+            "Authorization": f"Bearer {GRAPH_API_TOKEN}",
+            "Content-Type": "application/json"
         }
-    }
+        reply_data = {
+            "messaging_product": "whatsapp",
+            "to": message.get("from"),
+            "text": {"body": "Echo: " + message.get("text", {}).get("body", "")},
+            "context": {
+                "message_id": message.get("id")  # Reply to the original user message
+            }
+        }
 
-    try:
-        response = requests.post(url, json=data, headers=headers)
-        response.raise_for_status()
-        with open('static/output.mp3', 'wb') as f:
-            for chunk in response.iter_content(chunk_size=1024):
-                if chunk:
-                    f.write(chunk)
-        message = "Text-to-speech conversion successful. Output saved as 'output.mp3'."
-    except requests.exceptions.HTTPError as errh:
-        message = f"HTTP Error: {errh}"
-    except requests.exceptions.ConnectionError as errc:
-        message = f"Error Connecting: {errc}"
-    except requests.exceptions.Timeout as errt:
-        message = f"Timeout Error: {errt}"
-    except requests.exceptions.RequestException as err:
-        message = f"Something went wrong: {err}"
+        response = requests.post(reply_url, headers=reply_headers, json=reply_data)
+        print("Reply sent response:", response.json())  # Log the response
 
-    return render_template('index.html', message=message)
+        # Mark the incoming message as read
+        mark_read_data = {
+            "messaging_product": "whatsapp",
+            "status": "read",
+            "message_id": message.get("id")
+        }
+        mark_read_response = requests.post(reply_url, headers=reply_headers, json=mark_read_data)
+        print("Mark read response:", mark_read_response.json())  # Log the response
+
+    return jsonify({"status": "received"}), 200
+
+# Handle webhook verification GET requests
+@app.route("/webhook", methods=["GET"])
+def verify_webhook():
+    mode = request.args.get("hub.mode")
+    token = request.args.get("hub.verify_token")
+    challenge = request.args.get("hub.challenge")
+
+    # Log the received parameters for debugging
+    print(f"Received mode: {mode}")
+    print(f"Received token: {token}")
+    print(f"Received challenge: {challenge}")
+
+    if mode == "subscribe" and token == WEBHOOK_VERIFY_TOKEN:
+        print("Webhook verified successfully!")
+        return challenge, 200
+    else:
+        print("Verification failed.")
+        return "Forbidden", 403
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
+@app.route("/", methods=["GET"])
+def home():
+    return "<pre>Nothing to see here.\nCheckout README.md to start.</pre>"
+
+if __name__ == "__main__":
+    app.run(port=PORT)
