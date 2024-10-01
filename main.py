@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template, redirect, url_for, s
 import requests
 import os
 import psycopg2
+from psycopg2.extras import RealDictCursor
 from urllib.parse import urlparse
 
 
@@ -32,19 +33,14 @@ departments = {
 
 
 def get_db_connection():
-    # Get the DATABASE_URL from environment variable
-    DATABASE_URL = os.getenv('DATABASE_URL')
-
-    # Parse the database URL and extract the connection details
-    url = urlparse(DATABASE_URL)
-
     connection = psycopg2.connect(
-        database=url.path[1:],  # Skip the leading '/'
-        user=url.username,
-        password=url.password,
-        host=url.hostname,
-        port=url.port
+        dbname="whatsapp_hluc",  # Your PostgreSQL database name
+        user="whatsapp_hluc_user",  # Your PostgreSQL user
+        password="qIZ1rtncfnpgLjWIhTgvlcuTpvgmy8Ax",  # Your PostgreSQL password
+        host="dpg-crtph3tds78s73f2gvig-a.oregon-postgres.render.com",  # Your PostgreSQL host
+        port="5432"  # Default PostgreSQL port
     )
+    return connection
 
     return connection
 def fetch_available_dates():
@@ -113,12 +109,13 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        # For simplicity, check with hardcoded credentials (can be expanded to database user authentication)
+        # Hardcoded credentials for now, replace with PostgreSQL authentication later if needed
         if username == 'admin' and password == 'password':
             session['logged_in'] = True
             return redirect(url_for('appointments'))
 
     return render_template('login.html')
+
 
 # Logout route
 @app.route('/logout')
@@ -133,12 +130,13 @@ def appointments():
         return redirect(url_for('login'))
 
     connection = get_db_connection()
-    cursor = connection.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM appointments")
+    cursor = connection.cursor(cursor_factory=RealDictCursor)
+    cursor.execute("SELECT * FROM appointments ORDER BY created_at DESC")
     appointments = cursor.fetchall()
     connection.close()
 
     return render_template('appointments.html', appointments=appointments)
+
 
 # API to update appointment status
 @app.route('/update_status', methods=['POST'])
@@ -155,9 +153,11 @@ def update_status():
     query = "UPDATE appointments SET status = %s WHERE id = %s"
     cursor.execute(query, (new_status, appointment_id))
     connection.commit()
+    cursor.close()
     connection.close()
 
     return jsonify({"message": "Status updated successfully"})
+
 
 # Route to store appointments
 @app.route('/submitappointment', methods=['POST'])
@@ -181,8 +181,7 @@ def submit_appointment():
     INSERT INTO appointments (name, email, age, appointment_date, appointment_time, department, doctor, gender, phone_number, language)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     '''
-    cursor.execute(query, (
-    name, email, age, appointment_date, appointment_time, department, doctor, gender, phone_number, language))
+    cursor.execute(query, (name, email, age, appointment_date, appointment_time, department, doctor, gender, phone_number, language))
 
     conn.commit()
     cursor.close()
@@ -191,11 +190,12 @@ def submit_appointment():
     return jsonify({'message': 'Appointment saved successfully!'})
 
 
+
 # Route to retrieve all appointments
 @app.route('/appointments', methods=['GET'])
 def view_appointments():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    connection = get_db_connection()
+    cursor = connection.cursor(cursor_factory=RealDictCursor)
 
     cursor.execute("SELECT * FROM appointments ORDER BY created_at DESC")
     appointments = cursor.fetchall()
