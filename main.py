@@ -45,20 +45,22 @@ def get_db_connection():
     return connection
 def fetch_available_dates():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)  # Use RealDictCursor for PostgreSQL
     cursor.execute("SELECT * FROM available_dates")
     dates = cursor.fetchall()
     conn.close()
     return dates
 
+
 # Fetch times from DB
 def fetch_available_times():
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cursor.execute("SELECT * FROM available_times")
     times = cursor.fetchall()
     conn.close()
     return times
+
 
 # Route to manage available dates and times
 @app.route('/manage_schedule', methods=['GET', 'POST'])
@@ -83,6 +85,7 @@ def manage_schedule():
     times = fetch_available_times()
     return render_template('manage_schedule.html', dates=dates, times=times)
 
+
 # Route to delete a date
 @app.route('/delete_date/<int:date_id>')
 def delete_date(date_id):
@@ -93,6 +96,7 @@ def delete_date(date_id):
     conn.close()
     return redirect(url_for('manage_schedule'))
 
+
 # Route to delete a time
 @app.route('/delete_time/<int:time_id>')
 def delete_time(time_id):
@@ -102,6 +106,7 @@ def delete_time(time_id):
     conn.commit()
     conn.close()
     return redirect(url_for('manage_schedule'))
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -547,6 +552,7 @@ def fetch_available_dates_for_whatsapp():
     available_dates = [row[0].strftime("%Y-%m-%d") for row in cursor.fetchall()]  # Convert to strings
     conn.close()
     return available_dates
+
 def fetch_available_times_for_whatsapp():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -554,6 +560,7 @@ def fetch_available_times_for_whatsapp():
     available_times = [row[0] for row in cursor.fetchall()]  # Already stored as strings
     conn.close()
     return available_times
+
 
 def get_translated_text(text, language):
     translations = {
