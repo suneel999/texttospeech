@@ -205,10 +205,21 @@ def view_appointments():
     cursor.execute("SELECT * FROM appointments ORDER BY created_at DESC")
     appointments = cursor.fetchall()
 
-    cursor.close()
-    connection.close()  # Corrected this line
+    # Separate appointments by status
+    new_appointments = [apt for apt in appointments if apt['status'] == 'Pending']
+    confirmed_appointments = [apt for apt in appointments if apt['status'] == 'Confirmed']
+    postponed_appointments = [apt for apt in appointments if apt['status'] == 'Postponed']
+    deleted_appointments = [apt for apt in appointments if apt['status'] == 'Deleted']
 
-    return render_template('appointments.html', appointments=appointments)
+    cursor.close()
+    connection.close()
+
+    return render_template('appointments.html', 
+                           new_appointments=new_appointments,
+                           confirmed_appointments=confirmed_appointments,
+                           postponed_appointments=postponed_appointments,
+                           deleted_appointments=deleted_appointments)
+
 
 
 @app.route("/webhook", methods=["POST"])
