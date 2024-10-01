@@ -176,7 +176,7 @@ def submit_appointment():
     department = data.get('department')
     doctor = data.get('doctor')
     gender = data.get('gender')
-    phone_number = data.get('phone_number')
+    phone_number = data.get('sender')
     language = data.get('language')
 
     conn = get_db_connection()
@@ -206,9 +206,10 @@ def view_appointments():
     appointments = cursor.fetchall()
 
     cursor.close()
-    conn.close()
+    connection.close()  # Corrected this line
 
     return render_template('appointments.html', appointments=appointments)
+
 
 @app.route("/webhook", methods=["POST"])
 def handle_webhook():
