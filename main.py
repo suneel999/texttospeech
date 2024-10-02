@@ -536,7 +536,7 @@ def send_appointment_summary(sender):
 
     # Insert the appointment data into the database with the updated fields
     insert_query = """
-        INSERT INTO appointments (sender, name, email, age, gender, department, doctor, appointment_date, appointment_time, language, created_at, status)
+        INSERT INTO appointments (sender, name, email, age, gender, department_name, doctor, selected_date, selected_time, language,created_at, status)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), 'Pending')
     """
     
