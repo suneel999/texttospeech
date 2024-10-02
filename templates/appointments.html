@@ -71,12 +71,12 @@
                 <tr>
                     <td>{{ appointment['id'] }}</td>
                     <td>{{ appointment['name'] }}</td>
-                    <td>{{ appointment['phone_number'] }}</td>
+                    <td>{{ appointment['sender'] }}</td>
                     <td>{{ appointment['email'] }}</td>
-                    <td>{{ appointment['department'] }}</td>
+                    <td>{{ appointment['department_name'] }}</td>
                     <td>{{ appointment['doctor'] }}</td>
-                    <td>{{ appointment['appointment_date'] }}</td>
-                    <td>{{ appointment['appointment_time'] }}</td>
+                    <td>{{ appointment['selected_date'] }}</td>
+                    <td>{{ appointment['selected_time'] }}</td>
                     <td>
                         <button class="btn btn-success" onclick="updateStatus({{ appointment['id'] }}, 'Confirmed')">Confirm</button>
                         <button class="btn btn-warning" onclick="updateStatus({{ appointment['id'] }}, 'Postponed')">Postpone</button>
@@ -111,14 +111,14 @@
         <tbody>
             {% for appointment in confirmed_appointments %}
                 <tr>
-                    <td>{{ appointment['id'] }}</td>
+                    td>{{ appointment['id'] }}</td>
                     <td>{{ appointment['name'] }}</td>
-                    <td>{{ appointment['phone_number'] }}</td>
+                    <td>{{ appointment['sender'] }}</td>
                     <td>{{ appointment['email'] }}</td>
-                    <td>{{ appointment['department'] }}</td>
+                    <td>{{ appointment['department_name'] }}</td>
                     <td>{{ appointment['doctor'] }}</td>
-                    <td>{{ appointment['appointment_date'] }}</td>
-                    <td>{{ appointment['appointment_time'] }}</td>
+                    <td>{{ appointment['selected_date'] }}</td>
+                    <td>{{ appointment['selected_time'] }}</td>
                 </tr>
             {% else %}
                 <tr>
@@ -147,15 +147,15 @@
                     <tbody>
                         {% for appointment in appointments if appointment.status == 'Postponed' %}
                        <tr>
-                    <td>{{ appointment['id'] }}</td>
-                    <td>{{ appointment['name'] }}</td>
-                    <td>{{ appointment['phone_number'] }}</td>
-                    <td>{{ appointment['email'] }}</td>
-                    <td>{{ appointment['department'] }}</td>
-                    <td>{{ appointment['doctor'] }}</td>
-                    <td>{{ appointment['appointment_date'] }}</td>
-                    <td>{{ appointment['appointment_time'] }}</td>
-                </tr>
+                        td>{{ appointment['id'] }}</td>
+                        <td>{{ appointment['name'] }}</td>
+                        <td>{{ appointment['sender'] }}</td>
+                        <td>{{ appointment['email'] }}</td>
+                        <td>{{ appointment['department_name'] }}</td>
+                        <td>{{ appointment['doctor'] }}</td>
+                        <td>{{ appointment['selected_date'] }}</td>
+                        <td>{{ appointment['selected_time'] }}</td>
+                    </tr>
                         {% endfor %}
                     </tbody>
                 </table>
