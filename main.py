@@ -205,29 +205,32 @@ def submit_appointment():
 
 
 # Route to retrieve all appointments
-@app.route('/appointments', methods=['GET'])
+@app.route('/appointments')
 def view_appointments():
     connection = get_db_connection()
-    cursor = connection.cursor(cursor_factory=RealDictCursor)
+    cursor = connection.cursor()
 
-    cursor.execute("SELECT * FROM appointments ORDER BY created_at DESC")
-    appointments = cursor.fetchall()
+    # Fetch appointments with different statuses
+    cursor.execute("SELECT * FROM appointments WHERE status = 'Pending'")
+    new_appointments = cursor.fetchall()
 
-    # Separate appointments by status
-    new_appointments = [apt for apt in appointments if apt['status'] == 'Pending']
-    confirmed_appointments = [apt for apt in appointments if apt['status'] == 'Confirmed']
-    postponed_appointments = [apt for apt in appointments if apt['status'] == 'Postponed']
-    deleted_appointments = [apt for apt in appointments if apt['status'] == 'Deleted']
+    cursor.execute("SELECT * FROM appointments WHERE status = 'Confirmed'")
+    confirmed_appointments = cursor.fetchall()
+
+    cursor.execute("SELECT * FROM appointments WHERE status = 'Postponed'")
+    postponed_appointments = cursor.fetchall()
+
+    cursor.execute("SELECT * FROM appointments WHERE status = 'Deleted'")
+    deleted_appointments = cursor.fetchall()
 
     cursor.close()
     connection.close()
 
-    return render_template('appointments.html', 
+    return render_template('appointments.html',
                            new_appointments=new_appointments,
                            confirmed_appointments=confirmed_appointments,
                            postponed_appointments=postponed_appointments,
                            deleted_appointments=deleted_appointments)
-
 
 
 @app.route("/webhook", methods=["POST"])
