@@ -42,7 +42,6 @@ def get_db_connection():
     )
     return connection
 
-    return connection
 def fetch_available_dates():
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)  # Use RealDictCursor for PostgreSQL
@@ -136,11 +135,15 @@ def appointments():
 
     connection = get_db_connection()
     cursor = connection.cursor(cursor_factory=RealDictCursor)
+    
     cursor.execute("SELECT * FROM appointments ORDER BY created_at DESC")
     appointments = cursor.fetchall()
-    connection.close()
-
+    
+    cursor.close()  # Close the cursor after the operation
+    connection.close()  # Close the database connection
+    
     return render_template('appointments.html', appointments=appointments)
+
 
 
 # API to update appointment status
@@ -186,13 +189,18 @@ def submit_appointment():
     INSERT INTO appointments (name, email, age, appointment_date, appointment_time, department, doctor, gender, phone_number, language)
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     '''
-    cursor.execute(query, (name, email, age, appointment_date, appointment_time, department, doctor, gender, phone_number, language))
+    # Execute the query with the provided values
+    cursor.execute(query, (
+        name, email, age, appointment_date, appointment_time, department, doctor, gender, phone_number, language
+    ))
 
+    # Commit the changes and close the cursor and connection
     conn.commit()
     cursor.close()
     conn.close()
 
     return jsonify({'message': 'Appointment saved successfully!'})
+
 
 
 
@@ -523,41 +531,48 @@ def send_time_list(sender, times):
 
 def send_appointment_summary(sender):
     session = user_sessions[sender]
-    connection = get_db_connection()  # PostgreSQL connection
+    connection = get_db_connection()
     cursor = connection.cursor()
 
-    # Updated Insert Query to match your table structure
+    # Insert the appointment data into the database with the updated fields
     insert_query = """
-        INSERT INTO appointments (name, email, appointment_date, appointment_time, department, doctor, language, phone_number)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO appointments (sender, name, email, age, gender, department, doctor, appointment_date, appointment_time, language, created_at, status)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), 'Pending')
     """
+    
+    # Appointment data tuple with the new fields included
     appointment_data = (
+        sender,                              # Phone Number
         session['name'],                     # Name
         session['email'],                    # Email
-        session['selected_date'],            # Appointment Date
-        session['selected_time'],            # Appointment Time
+        session['age'],                      # Age
+        session['gender'],                   # Gender
         session['department_name'],          # Department
         session['doctor'],                   # Doctor
-        session['language'],                 # Language
-        session.get('sender', None)    # Phone Number (optional if not collected)
+        session['selected_date'],            # Appointment Date
+        session['selected_time'],            # Appointment Time
+        session['language']                  # Language
     )
 
+    # Execute the query and commit the transaction
     try:
         cursor.execute(insert_query, appointment_data)
         connection.commit()  # Commit the transaction
-        print("Appointment data inserted successfully")  # Debugging info
+        print("Appointment data inserted successfully")
     except Exception as e:
-        print("Error inserting appointment data:", e)  # Error logging
-        connection.rollback()  # Rollback in case of error
+        print(f"Error inserting appointment data: {e}")
+        connection.rollback()  # Rollback the transaction in case of error
     finally:
         cursor.close()
-        connection.close()  # Close the connection
+        connection.close()
 
     # Prepare and send the appointment summary
     summary = (
         f"{get_translated_text('Appointment Summary:', session['language'])}\n"
         f"{get_translated_text('Name:', session['language'])} {session['name']}\n"
         f"{get_translated_text('Email:', session['language'])} {session['email']}\n"
+        f"{get_translated_text('Age:', session['language'])} {session['age']}\n"
+        f"{get_translated_text('Gender:', session['language'])} {session['gender']}\n"
         f"{get_translated_text('Department:', session['language'])} {session['department_name']}\n"
         f"{get_translated_text('Doctor:', session['language'])} {session['doctor']}\n"
         f"{get_translated_text('Date:', session['language'])} {session['selected_date']}\n"
@@ -566,7 +581,8 @@ def send_appointment_summary(sender):
     
     # Send the summary to the user
     send_message(sender, summary)
-    send_message(sender, get_translated_text("Please confirm your appointment by replying 'Confirm' or reply 'Edit' to make changes.", session["language"]))
+    send_message(sender, get_translated_text("Please confirm your appointment by replying 'Confirm' or reply 'Edit' to make changes.", session['language']))
+
 
 
 
