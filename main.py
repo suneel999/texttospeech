@@ -149,23 +149,23 @@ def appointments():
 # API to update appointment status
 @app.route('/update_status', methods=['POST'])
 def update_status():
-    if not session.get('logged_in'):
-        return jsonify({"error": "Unauthorized"}), 403
-
     appointment_id = request.form['appointment_id']
     new_status = request.form['status']
-
+    
     connection = get_db_connection()
     cursor = connection.cursor()
-
-    query = "UPDATE appointments SET status = %s WHERE id = %s"
-    cursor.execute(query, (new_status, appointment_id))
+    
+    cursor.execute("""
+        UPDATE appointments 
+        SET status = %s 
+        WHERE id = %s
+    """, (new_status, appointment_id))
+    
     connection.commit()
     cursor.close()
     connection.close()
-
+    
     return jsonify({"message": "Status updated successfully"})
-
 
 # Route to store appointments
 @app.route('/submitappointment', methods=['POST'])
@@ -231,6 +231,26 @@ def view_appointments():
                            confirmed_appointments=confirmed_appointments,
                            postponed_appointments=postponed_appointments,
                            deleted_appointments=deleted_appointments)
+
+@app.route('/update_status', methods=['POST'])
+def update_status():
+    appointment_id = request.form['appointment_id']
+    new_status = request.form['status']
+    
+    connection = get_db_connection()
+    cursor = connection.cursor()
+    
+    cursor.execute("""
+        UPDATE appointments 
+        SET status = %s 
+        WHERE id = %s
+    """, (new_status, appointment_id))
+    
+    connection.commit()
+    cursor.close()
+    connection.close()
+    
+    return jsonify({"message": "Status updated successfully"})
 
 
 @app.route("/webhook", methods=["POST"])
