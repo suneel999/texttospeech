@@ -149,23 +149,21 @@ def appointments():
 # API to update appointment status
 @app.route('/update_status', methods=['POST'])
 def update_status():
-    appointment_id = request.form['appointment_id']
-    new_status = request.form['status']
-    
+    appointment_id = request.form.get('appointment_id')
+    new_status = request.form.get('status')
+
     connection = get_db_connection()
     cursor = connection.cursor()
-    
-    cursor.execute("""
-        UPDATE appointments 
-        SET status = %s 
-        WHERE id = %s
-    """, (new_status, appointment_id))
-    
+
+    update_query = "UPDATE appointments SET status = %s WHERE id = %s"
+    cursor.execute(update_query, (new_status, appointment_id))
     connection.commit()
+
     cursor.close()
     connection.close()
-    
+
     return jsonify({"message": "Status updated successfully"})
+
 
 # Route to store appointments
 @app.route('/submitappointment', methods=['POST'])
