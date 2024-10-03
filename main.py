@@ -70,21 +70,15 @@ def fetch_times_for_date():
 @app.route('/manage_schedule', methods=['GET', 'POST'])
 def manage_schedule():
     if request.method == 'POST':
-        if request.is_json:
-            selected_date_id = request.json.get('date_id')
-            times = fetch_available_times(selected_date_id)
-            return jsonify(times)  # Return the times as JSON when using AJAX
-
         # Handle adding new date
         if 'new_date' in request.form:
             new_date = request.form['new_date']
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("INSERT INTO available_dates (available_date) VALUES (%s) RETURNING id", (new_date,))
-            new_date_id = cursor.fetchone()[0]
+            new_date_id = cursor.fetchone()[0]  # Get the new date ID for linking times
             conn.commit()
             conn.close()
-
         # Handle adding new time linked to a date
         elif 'new_time' in request.form and 'date_id' in request.form:
             new_time = request.form['new_time']
@@ -97,6 +91,7 @@ def manage_schedule():
 
     # Fetch all dates and their associated times
     dates = fetch_available_dates()
+    # Get the selected date ID from form (if POST) or use the first date in the list
     selected_date_id = request.form.get('date_id') if request.method == 'POST' else (dates[0]['id'] if dates else None)
     times = fetch_available_times(selected_date_id) if selected_date_id else []
 
