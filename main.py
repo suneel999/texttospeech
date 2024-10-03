@@ -228,7 +228,7 @@ def view_appointments():
     deleted_appointments = cursor.fetchall()
 
     cursor.close()
-    connection.close()
+    conn.close()
 
     return render_template('appointments.html',
                            new_appointments=new_appointments,
