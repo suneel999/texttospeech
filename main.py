@@ -151,21 +151,24 @@ def appointments():
 def update_status():
     appointment_id = request.form['appointment_id']
     new_status = request.form['status']
-    
+
     connection = get_db_connection()
     cursor = connection.cursor()
-    
+
+    # Update the status in the database
     cursor.execute("""
         UPDATE appointments 
         SET status = %s 
         WHERE id = %s
     """, (new_status, appointment_id))
-    
+
     connection.commit()
     cursor.close()
     connection.close()
-    
-    return jsonify({"message": "Status updated successfully"})
+
+    # Redirect back to the appointments page
+    return redirect(url_for('view_appointments'))
+
 
 # Route to store appointments
 @app.route('/submitappointment', methods=['POST'])
@@ -205,6 +208,7 @@ def submit_appointment():
 
 
 # Route to retrieve all appointments
+
 @app.route('/appointments')
 def view_appointments():
     connection = get_db_connection()
@@ -231,8 +235,6 @@ def view_appointments():
                            confirmed_appointments=confirmed_appointments,
                            postponed_appointments=postponed_appointments,
                            deleted_appointments=deleted_appointments)
-
-
 
 @app.route("/webhook", methods=["POST"])
 def handle_webhook():
