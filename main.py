@@ -299,13 +299,14 @@ def handle_list_response(sender, list_reply_id):
 
     # Handling date selection
     elif step == "date" and list_reply_id in fetch_available_dates_for_whatsapp():
-        select_date = session.get("date")
+        select_date = session.get("selected_date")
         selected_date = list_reply_id
         user_sessions[sender]["selected_date"] = selected_date
         user_sessions[sender]["step"] = "time"
         send_time_list(sender, fetch_available_times_for_whatsapp(select_date))
 
     # Handling time selection
+    select_date = session.get("selected_date")
     elif step == "time" and list_reply_id in fetch_available_times_for_whatsapp(select_date):
         selected_time = list_reply_id
         user_sessions[sender]["selected_time"] = selected_time
