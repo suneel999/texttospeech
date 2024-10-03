@@ -85,11 +85,12 @@ def manage_schedule():
 
     # Fetch all dates and their associated times
     dates = fetch_available_dates()
-    # Fetch all times for the first date (or you can allow user to choose date)
-    selected_date_id = dates[0]['id'] if dates else None
+    # Get the selected date ID from form (if POST) or use the first date in the list
+    selected_date_id = request.form.get('date_id') if request.method == 'POST' else (dates[0]['id'] if dates else None)
     times = fetch_available_times(selected_date_id) if selected_date_id else []
 
     return render_template('manage_schedule.html', dates=dates, times=times, selected_date_id=selected_date_id)
+
 # Route to delete a date
 @app.route('/delete_date/<int:date_id>')
 def delete_date(date_id):
@@ -99,7 +100,6 @@ def delete_date(date_id):
     conn.commit()
     conn.close()
     return redirect(url_for('manage_schedule'))
-
 
 # Route to delete a time
 @app.route('/delete_time/<int:time_id>')
