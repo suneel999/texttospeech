@@ -304,7 +304,7 @@ def handle_list_response(sender, list_reply_id):
         user_sessions[sender]["step"] = "time"  # Move to time selection step
 
         # Fetch available times for the selected date and send them to the user
-        send_time_list(sender, fetch_available_times_for_whatsapp(selected_date))
+        send_time_list(sender, fetch_available_times_for_whatsapp(list_reply_id))
 
 # Handling time selection
     elif step == "time" and list_reply_id in fetch_available_times_for_whatsapp(user_sessions[sender]["selected_date"]):
