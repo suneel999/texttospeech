@@ -58,9 +58,8 @@
                     <div class="form-group mr-2">
                         <label for="date_id" class="sr-only">Select Date:</label>
                         <select name="date_id" id="date_id" class="form-control" required>
-                            <option value="">Select a Date</option>
                             {% for date in dates %}
-                            <option value="{{ date['id'] }}">
+                            <option value="{{ date['id'] }}" {% if date['id'] == selected_date_id %}selected{% endif %}>
                                 {{ date['available_date'] }}
                             </option>
                             {% endfor %}
@@ -74,48 +73,22 @@
                 </form>
 
                 <!-- List of existing times for the selected date with delete option -->
-                <ul class="list-group" id="time-list">
-                    <!-- The times will be loaded here via AJAX based on the selected date -->
+                <ul class="list-group">
+                    {% for time in times %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ time['available_time'] }}
+                        <a href="{{ url_for('delete_time', time_id=time['id']) }}" class="btn btn-danger btn-sm">Delete</a>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item">No available times for this date.</li>
+                    {% endfor %}
                 </ul>
             </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            // Event listener for date selection
-            $('#date_id').change(function() {
-                var date_id = $(this).val();
-                if (date_id) {
-                    $.ajax({
-                        url: "{{ url_for('fetch_times_for_date') }}",  // Flask route to fetch times
-                        method: "POST",
-                        data: { date_id: date_id },
-                        success: function(response) {
-                            $('#time-list').empty();  // Clear the existing times
-                            if (response.times && response.times.length > 0) {
-                                response.times.forEach(function(time) {
-                                    $('#time-list').append(
-                                        '<li class="list-group-item d-flex justify-content-between align-items-center">' +
-                                        time.available_time +
-                                        '<a href="{{ url_for('delete_time', time_id=time['id']) }}" class="btn btn-danger btn-sm">Delete</a>' +
-                                        '</li>'
-                                    );
-                                });
-                            } else {
-                                $('#time-list').append('<li class="list-group-item">No times available for this date.</li>');
-                            }
-                        }
-                    });
-                } else {
-                    $('#time-list').empty();  // Clear the times if no date is selected
-                }
-            });
-        });
-    </script>
 </body>
 </html>
