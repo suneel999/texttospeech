@@ -605,13 +605,27 @@ def fetch_available_dates_for_whatsapp():
     conn.close()
     return available_dates
 
-def fetch_available_times_for_whatsapp(date_id):
+def fetch_available_times_for_whatsapp(selected_date):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM available_times WHERE date_id = %s", (date_id,))
-    available_times = [row[0] for row in cursor.fetchall()]  # Already stored as strings
+
+    # Fetch the date_id based on the selected date
+    cursor.execute("SELECT id FROM available_dates WHERE available_date = %s", (selected_date,))
+    result = cursor.fetchone()
+
+    if result:
+        date_id = result[0]
+
+        # Fetch the available times using the date_id
+        cursor.execute("SELECT available_time FROM available_times WHERE date_id = %s", (date_id,))
+        available_times = [row[0] for row in cursor.fetchall()]  # Already stored as strings
+    else:
+        # No date_id found for the selected_date, return an empty list
+        available_times = []
+
     conn.close()
     return available_times
+
 
 
 def get_translated_text(text, language):
