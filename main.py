@@ -44,23 +44,17 @@ def get_db_connection():
 
 def fetch_available_dates():
     conn = get_db_connection()
-    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)  # Use RealDictCursor for PostgreSQL
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cursor.execute("SELECT * FROM available_dates")
     dates = cursor.fetchall()
     conn.close()
     return dates
 
-
-# Fetch times from DB
-def fetch_available_times(date_id=None):
+# Fetch times for a specific date
+def fetch_available_times(date_id):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    
-    if date_id:
-        cursor.execute("SELECT * FROM available_times WHERE date_id = %s", (date_id,))
-    else:
-        cursor.execute("SELECT * FROM available_times")
-    
+    cursor.execute("SELECT * FROM available_times WHERE date_id = %s", (date_id,))
     times = cursor.fetchall()
     conn.close()
     return times
@@ -70,13 +64,16 @@ def fetch_available_times(date_id=None):
 @app.route('/manage_schedule', methods=['GET', 'POST'])
 def manage_schedule():
     if request.method == 'POST':
+        # Handle adding new date
         if 'new_date' in request.form:
             new_date = request.form['new_date']
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO available_dates (available_date) VALUES (%s)", (new_date,))
+            cursor.execute("INSERT INTO available_dates (available_date) VALUES (%s) RETURNING id", (new_date,))
+            new_date_id = cursor.fetchone()[0]  # Get the new date ID for linking times
             conn.commit()
             conn.close()
+        # Handle adding new time linked to a date
         elif 'new_time' in request.form and 'date_id' in request.form:
             new_time = request.form['new_time']
             date_id = request.form['date_id']
@@ -86,11 +83,13 @@ def manage_schedule():
             conn.commit()
             conn.close()
 
+    # Fetch all dates and their associated times
     dates = fetch_available_dates()
-    times = fetch_available_times()  # Fetch all times or times for a specific date if needed
-    return render_template('manage_schedule.html', dates=dates, times=times)
+    # Fetch all times for the first date (or you can allow user to choose date)
+    selected_date_id = dates[0]['id'] if dates else None
+    times = fetch_available_times(selected_date_id) if selected_date_id else []
 
-
+    return render_template('manage_schedule.html', dates=dates, times=times, selected_date_id=selected_date_id)
 # Route to delete a date
 @app.route('/delete_date/<int:date_id>')
 def delete_date(date_id):
