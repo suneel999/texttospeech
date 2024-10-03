@@ -302,10 +302,10 @@ def handle_list_response(sender, list_reply_id):
         selected_date = list_reply_id
         user_sessions[sender]["selected_date"] = selected_date
         user_sessions[sender]["step"] = "time"
-        send_time_list(sender, fetch_available_times_for_whatsapp())
+        send_time_list(sender, fetch_available_times_for_whatsapp(selected_date))
 
     # Handling time selection
-    elif step == "time" and list_reply_id in fetch_available_times_for_whatsapp():
+    elif step == "time" and list_reply_id in fetch_available_times_for_whatsapp(selected_date):
         selected_time = list_reply_id
         user_sessions[sender]["selected_time"] = selected_time
         send_appointment_summary(sender)
@@ -605,10 +605,10 @@ def fetch_available_dates_for_whatsapp():
     conn.close()
     return available_dates
 
-def fetch_available_times_for_whatsapp():
+def fetch_available_times_for_whatsapp(date_id):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT available_time FROM available_times")
+    cursor.execute("SELECT * FROM available_times WHERE date_id = %s", (date_id,))
     available_times = [row[0] for row in cursor.fetchall()]  # Already stored as strings
     conn.close()
     return available_times
