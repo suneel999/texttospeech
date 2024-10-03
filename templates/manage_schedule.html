@@ -57,7 +57,7 @@
                 <form method="POST" class="form-inline mb-3">
                     <div class="form-group mr-2">
                         <label for="date_id" class="sr-only">Select Date:</label>
-                        <select name="date_id" id="date_id" class="form-control" required>
+                        <select name="date_id" id="date_id" class="form-control" required onchange="fetchTimes()">
                             {% for date in dates %}
                             <option value="{{ date['id'] }}" {% if date['id'] == selected_date_id %}selected{% endif %}>
                                 {{ date['available_date'] }}
@@ -67,13 +67,13 @@
                     </div>
                     <div class="form-group mr-2">
                         <label for="new_time" class="sr-only">New Time (e.g., 10:00 AM):</label>
-                        <input type="text" name="new_time" id="new_time" class="form-control" required>
+                        <input type="text" name="new_time" id="new_time" class="form-control">
                     </div>
                     <button type="submit" class="btn btn-primary">Add Time</button>
                 </form>
 
                 <!-- List of existing times for the selected date with delete option -->
-                <ul class="list-group">
+                <ul class="list-group" id="times-list">
                     {% for time in times %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         {{ time['available_time'] }}
@@ -87,8 +87,34 @@
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- JavaScript to handle dynamic loading of times based on selected date -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        function fetchTimes() {
+            var date_id = $('#date_id').val();
+            $.ajax({
+                url: "{{ url_for('manage_schedule') }}",
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ date_id: date_id }),
+                success: function(response) {
+                    var timesList = $('#times-list');
+                    timesList.empty();
+                    if (response.length > 0) {
+                        response.forEach(function(time) {
+                            timesList.append(
+                                '<li class="list-group-item d-flex justify-content-between align-items-center">' +
+                                time.available_time +
+                                '<a href="{{ url_for('delete_time', time_id='') }}' + time.id + '" class="btn btn-danger btn-sm">Delete</a>' +
+                                '</li>'
+                            );
+                        });
+                    } else {
+                        timesList.append('<li class="list-group-item">No available times for this date.</li>');
+                    }
+                }
+            });
+        }
+    </script>
 </body>
 </html>
