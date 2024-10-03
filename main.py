@@ -52,10 +52,15 @@ def fetch_available_dates():
 
 
 # Fetch times from DB
-def fetch_available_times():
+def fetch_available_times(date_id=None):
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cursor.execute("SELECT * FROM available_times")
+    
+    if date_id:
+        cursor.execute("SELECT * FROM available_times WHERE date_id = %s", (date_id,))
+    else:
+        cursor.execute("SELECT * FROM available_times")
+    
     times = cursor.fetchall()
     conn.close()
     return times
@@ -72,16 +77,17 @@ def manage_schedule():
             cursor.execute("INSERT INTO available_dates (available_date) VALUES (%s)", (new_date,))
             conn.commit()
             conn.close()
-        elif 'new_time' in request.form:
+        elif 'new_time' in request.form and 'date_id' in request.form:
             new_time = request.form['new_time']
+            date_id = request.form['date_id']
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO available_times (available_time) VALUES (%s)", (new_time,))
+            cursor.execute("INSERT INTO available_times (available_time, date_id) VALUES (%s, %s)", (new_time, date_id))
             conn.commit()
             conn.close()
 
     dates = fetch_available_dates()
-    times = fetch_available_times()
+    times = fetch_available_times()  # Fetch all times or times for a specific date if needed
     return render_template('manage_schedule.html', dates=dates, times=times)
 
 
