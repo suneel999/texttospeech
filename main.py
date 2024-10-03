@@ -140,7 +140,7 @@ def appointments():
     appointments = cursor.fetchall()
     
     cursor.close()  # Close the cursor after the operation
-    connection.close()  # Close the database connection
+    conn.close()  # Close the database connection
     
     return render_template('appointments.html', appointments=appointments)
 
