@@ -149,22 +149,22 @@ def appointments():
 # API to update appointment status
 @app.route('/update_status', methods=['POST'])
 def update_status():
-    # Get the appointment ID and new status from the request
-    data = request.get_json()  # Change to .get_json() since we're sending JSON
-    appointment_id = data.get('appointment_id')
-    new_status = data.get('status')
-
+    appointment_id = request.form['appointment_id']
+    new_status = request.form['status']
+    
     connection = get_db_connection()
     cursor = connection.cursor()
-
-    # Use parameterized queries to prevent SQL injection
-    update_query = sql.SQL("UPDATE appointments SET status = %s WHERE id = %s")
-    cursor.execute(update_query, (new_status, appointment_id))
+    
+    cursor.execute("""
+        UPDATE appointments 
+        SET status = %s 
+        WHERE id = %s
+    """, (new_status, appointment_id))
+    
     connection.commit()
-
     cursor.close()
     connection.close()
-
+    
     return jsonify({"message": "Status updated successfully"})
 
 # Route to store appointments
@@ -208,7 +208,7 @@ def submit_appointment():
 @app.route('/appointments')
 def view_appointments():
     connection = get_db_connection()
-    cursor = connection.cursor()
+    cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     # Fetch appointments with different statuses
     cursor.execute("SELECT * FROM appointments WHERE status = 'Pending'")
