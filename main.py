@@ -133,8 +133,8 @@ def appointments():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    connection = get_db_connection()
-    cursor = connection.cursor(cursor_factory=RealDictCursor)
+    conn = get_db_connection()
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     
     cursor.execute("SELECT * FROM appointments ORDER BY created_at DESC")
     appointments = cursor.fetchall()
