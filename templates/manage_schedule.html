@@ -12,7 +12,7 @@
             <a class="navbar-brand" href="{{ url_for('appointments') }}">Appointments Dashboard</a>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <div class="ml-auto d-flex">
-                    <a href="{{ url_for('view_schedule') }}" class="btn btn-primary mx-2">View Schedule</a>
+                    <a href="{{ url_for('manage_schedule') }}" class="btn btn-primary mx-2">Change Date/Time Slots</a>
                     <a href="{{ url_for('logout') }}" class="btn btn-outline-danger mx-2">Logout</a>
                 </div>
             </div>
@@ -40,7 +40,12 @@
                 <ul class="list-group">
                     {% for date in dates %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        {{ date['available_date'] }}
+                        <form method="POST" class="form-inline">
+                            <input type="hidden" name="date_id" value="{{ date['id'] }}">
+                            <button type="submit" class="btn btn-link">
+                                {{ date['available_date'] }}
+                            </button>
+                        </form>
                         <a href="{{ url_for('delete_date', date_id=date['id']) }}" class="btn btn-danger btn-sm">Delete</a>
                     </li>
                     {% endfor %}
@@ -48,23 +53,15 @@
             </div>
         </div>
 
-        <!-- Form to add a new time linked to the selected date -->
+        <!-- Section for managing available times of the selected date -->
         <div class="card mt-4">
             <div class="card-header">
-                <h2 class="mb-0">Available Times</h2>
+                <h2 class="mb-0">Available Times for Selected Date</h2>
             </div>
             <div class="card-body">
+                <!-- Form to add new time for selected date -->
                 <form method="POST" class="form-inline mb-3">
-                    <div class="form-group mr-2">
-                        <label for="date_id" class="sr-only">Select Date:</label>
-                        <select name="date_id" id="date_id" class="form-control" required>
-                            {% for date in dates %}
-                            <option value="{{ date['id'] }}" {% if date['id'] == selected_date_id %}selected{% endif %}>
-                                {{ date['available_date'] }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
+                    <input type="hidden" name="date_id" value="{{ selected_date_id }}">
                     <div class="form-group mr-2">
                         <label for="new_time" class="sr-only">New Time (e.g., 10:00 AM):</label>
                         <input type="text" name="new_time" id="new_time" class="form-control" required>
@@ -72,7 +69,7 @@
                     <button type="submit" class="btn btn-primary">Add Time</button>
                 </form>
 
-                <!-- List of existing times for the selected date with delete option -->
+                <!-- List of times for selected date with delete option -->
                 <ul class="list-group">
                     {% for time in times %}
                     <li class="list-group-item d-flex justify-content-between align-items-center">
