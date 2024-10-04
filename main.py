@@ -73,7 +73,11 @@ def get_times_for_date(date_id):
 # Route to manage available dates and times
 @app.route('/manage_schedule', methods=['GET', 'POST'])
 def manage_schedule():
+    selected_date_id = None
+    times = []
+
     if request.method == 'POST':
+        # Handle adding a new date
         if 'new_date' in request.form:
             new_date = request.form['new_date']
             conn = get_db_connection()
@@ -82,6 +86,8 @@ def manage_schedule():
             new_date_id = cursor.fetchone()[0]
             conn.commit()
             conn.close()
+
+        # Handle adding a new time linked to a date
         elif 'new_time' in request.form and 'date_id' in request.form:
             new_time = request.form['new_time']
             date_id = request.form['date_id']
@@ -91,11 +97,23 @@ def manage_schedule():
             conn.commit()
             conn.close()
 
-    dates = fetch_available_dates()
-    selected_date_id = request.form.get('date_id') if request.method == 'POST' else (dates[0]['id'] if dates else None)
-    times = fetch_available_times(selected_date_id) if selected_date_id else []
-    return render_template('manage_schedule.html', dates=dates, times=times, selected_date_id=selected_date_id)
+            selected_date_id = date_id  # Keep selected date for times display
 
+        # If a date is selected from dropdown, update the selected date
+        elif 'date_id' in request.form:
+            selected_date_id = request.form['date_id']
+    
+    # Fetch all dates and their associated times
+    dates = fetch_available_dates()
+
+    # If a specific date is selected, fetch its times
+    if selected_date_id:
+        times = fetch_available_times(selected_date_id)
+    else:
+        selected_date_id = dates[0]['id'] if dates else None
+        times = fetch_available_times(selected_date_id) if selected_date_id else []
+
+    return render_template('manage_schedule.html', dates=dates, times=times, selected_date_id=selected_date_id)
 # Route to delete a date
 @app.route('/delete_date/<int:date_id>')
 def delete_date(date_id):
