@@ -160,24 +160,26 @@ def appointments():
 # API to update appointment status
 @app.route('/update_status', methods=['POST'])
 def update_status():
-    appointment_id = request.form['appointment_id']
-    new_status = request.form['status']
+    appointment_id = request.form.get('appointment_id')
+    new_status = request.form.get('status')
+    
+    if not appointment_id or not new_status:
+        return jsonify({"error": "Missing appointment ID or status"}), 400
 
-    connection = get_db_connection()
-    cursor = connection.cursor()
-
-    # Update the status in the database
-    cursor.execute("""
-        UPDATE appointments 
-        SET status = %s 
-        WHERE id = %s
-    """, (new_status, appointment_id))
-
-    connection.commit()
-    cursor.close()
-    connection.close()
-
-    # Redirect back to the appointments page
+    # Update the appointment status in your database
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("UPDATE appointments SET status = %s WHERE id = %s", (new_status, appointment_id))
+        conn.commit()
+        return jsonify({"message": "Status updated successfully"}), 200
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
     return redirect(url_for('view_appointments'))
 
 # Route to store appointments
