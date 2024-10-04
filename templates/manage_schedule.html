@@ -77,14 +77,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-    <script>
+        <script>
         function loadTimes(dateId) {
             if (dateId === "") {
                 document.getElementById("times_list").innerHTML = "<h3 class='text-center'>Select a date to view available times</h3>";
                 return;
             }
 
-            // Make an AJAX call to fetch times for the selected date
             fetch(`/get_times_for_date/${dateId}`)
                 .then(response => response.json())
                 .then(data => {
@@ -103,7 +102,6 @@
                     }
 
                     timesList += "</ul>";
-
                     document.getElementById("times_list").innerHTML = timesList;
                 })
                 .catch(error => console.error('Error fetching times:', error));
