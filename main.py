@@ -58,25 +58,30 @@ def fetch_available_times(date_id):
     times = cursor.fetchall()
     conn.close()
     return times
+@app.route('/view_schedule')
+def view_schedule():
+    dates = fetch_available_dates()
+    selected_date_id = request.args.get('date_id') if request.args.get('date_id') else (dates[0]['id'] if dates else None)
+    times = fetch_available_times(selected_date_id) if selected_date_id else []
+    return render_template('view_schedule.html', dates=dates, times=times, selected_date_id=selected_date_id)
 
 @app.route('/get_times_for_date/<int:date_id>')
 def get_times_for_date(date_id):
-    times = get_times_for_date_from_db(date_id)  # Fetch times from your DB
-    return jsonify(times=[{'id': time.id, 'available_time': time.available_time} for time in times])
+    times = fetch_available_times(date_id)
+    return jsonify(times=[{'id': time['id'], 'available_time': time['available_time']} for time in times])
+
 # Route to manage available dates and times
 @app.route('/manage_schedule', methods=['GET', 'POST'])
 def manage_schedule():
     if request.method == 'POST':
-        # Handle adding new date
         if 'new_date' in request.form:
             new_date = request.form['new_date']
             conn = get_db_connection()
             cursor = conn.cursor()
             cursor.execute("INSERT INTO available_dates (available_date) VALUES (%s) RETURNING id", (new_date,))
-            new_date_id = cursor.fetchone()[0]  # Get the new date ID for linking times
+            new_date_id = cursor.fetchone()[0]
             conn.commit()
             conn.close()
-        # Handle adding new time linked to a date
         elif 'new_time' in request.form and 'date_id' in request.form:
             new_time = request.form['new_time']
             date_id = request.form['date_id']
@@ -86,12 +91,9 @@ def manage_schedule():
             conn.commit()
             conn.close()
 
-    # Fetch all dates and their associated times
     dates = fetch_available_dates()
-    # Get the selected date ID from form (if POST) or use the first date in the list
     selected_date_id = request.form.get('date_id') if request.method == 'POST' else (dates[0]['id'] if dates else None)
     times = fetch_available_times(selected_date_id) if selected_date_id else []
-
     return render_template('manage_schedule.html', dates=dates, times=times, selected_date_id=selected_date_id)
 
 # Route to delete a date
