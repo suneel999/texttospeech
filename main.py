@@ -180,7 +180,6 @@ def update_status():
     # Redirect back to the appointments page
     return redirect(url_for('view_appointments'))
 
-
 # Route to store appointments
 @app.route('/submitappointment', methods=['POST'])
 def submit_appointment():
