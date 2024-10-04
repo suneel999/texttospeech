@@ -59,13 +59,10 @@ def fetch_available_times(date_id):
     conn.close()
     return times
 
-@app.route('/fetch_times_for_date', methods=['POST'])
-def fetch_times_for_date():
-    date_id = request.form.get('date_id')
-    if date_id:
-        times = fetch_available_times(date_id)
-        return jsonify({'times': times})
-    return jsonify({'times': []})
+@app.route('/get_times_for_date/<int:date_id>')
+def get_times_for_date(date_id):
+    times = get_times_for_date_from_db(date_id)  # Fetch times from your DB
+    return jsonify(times=[{'id': time.id, 'available_time': time.available_time} for time in times])
 # Route to manage available dates and times
 @app.route('/manage_schedule', methods=['GET', 'POST'])
 def manage_schedule():
