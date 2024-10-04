@@ -51,44 +51,63 @@
         <!-- Form to add a new time linked to the selected date -->
         <div class="card mt-4">
             <div class="card-header">
-                <h2 class="mb-0">Available Times</h2>
+                <h2 class="mb-0">Manage Available Times</h2>
             </div>
             <div class="card-body">
-                <form method="POST" class="form-inline mb-3">
-                    <div class="form-group mr-2">
-                        <label for="date_id" class="sr-only">Select Date:</label>
-                        <select name="date_id" id="date_id" class="form-control" required>
-                            {% for date in dates %}
-                            <option value="{{ date['id'] }}" {% if date['id'] == selected_date_id %}selected{% endif %}>
-                                {{ date['available_date'] }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group mr-2">
-                        <label for="new_time" class="sr-only">New Time (e.g., 10:00 AM):</label>
-                        <input type="text" name="new_time" id="new_time" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Add Time</button>
-                </form>
+                <!-- Dropdown to select a date -->
+                <div class="form-group">
+                    <label for="date_id">Select a Date to View Available Times:</label>
+                    <select name="date_id" id="date_id" class="form-control" onchange="loadTimes(this.value)" required>
+                        <option value="">-- Select a Date --</option>
+                        {% for date in dates %}
+                        <option value="{{ date['id'] }}">{{ date['available_date'] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-                <!-- List of existing times for the selected date with delete option -->
-                <ul class="list-group">
-                    {% for time in times %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        {{ time['available_time'] }}
-                        <a href="{{ url_for('delete_time', time_id=time['id']) }}" class="btn btn-danger btn-sm">Delete</a>
-                    </li>
-                    {% else %}
-                    <li class="list-group-item">No available times for this date.</li>
-                    {% endfor %}
-                </ul>
+                <!-- List of times for the selected date -->
+                <div id="times_list" class="mt-4">
+                    <h3 class="text-center">Select a date to view available times</h3>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        function loadTimes(dateId) {
+            if (dateId === "") {
+                document.getElementById("times_list").innerHTML = "<h3 class='text-center'>Select a date to view available times</h3>";
+                return;
+            }
+
+            // Make an AJAX call to fetch times for the selected date
+            fetch(`/get_times_for_date/${dateId}`)
+                .then(response => response.json())
+                .then(data => {
+                    let timesList = "<h3>Available Times for Selected Date</h3><ul class='list-group'>";
+
+                    if (data.times.length > 0) {
+                        data.times.forEach(time => {
+                            timesList += `
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    ${time.available_time}
+                                    <a href="/delete_time/${time.id}" class="btn btn-danger btn-sm">Delete</a>
+                                </li>`;
+                        });
+                    } else {
+                        timesList += "<li class='list-group-item'>No available times for this date.</li>";
+                    }
+
+                    timesList += "</ul>";
+
+                    document.getElementById("times_list").innerHTML = timesList;
+                })
+                .catch(error => console.error('Error fetching times:', error));
+        }
+    </script>
 </body>
 </html>
