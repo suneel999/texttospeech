@@ -142,7 +142,7 @@ def login():
         password = request.form['password']
 
         # Hardcoded credentials for now, replace with PostgreSQL authentication later if needed
-        if username == 'admin' and password == 'password':
+        if username == 'pulse' and password == 'pulse@123':
             session['logged_in'] = True
             return redirect(url_for('appointments'))
 
