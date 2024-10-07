@@ -329,14 +329,15 @@ def handle_list_response(sender, list_reply_id):
             doctors = cursor.fetchall()
 
         # Check if the doctor selected is valid
-        if list_reply_id in [str(doctor[0]) for doctor in doctors]:
-            selected_doctor = [doctor for doctor in doctors if str(doctor[0]) == list_reply_id][0]
-            user_sessions[sender]["doctor"] = selected_doctor[1]  # Save doctor name
-            user_sessions[sender]["step"] = "name"
-            send_message(sender, get_translated_text("Please provide your name:", session["language"]))
-        else:
-            send_message(sender, get_translated_text("Invalid doctor selection. Please try again.", session["language"]))
-
+        if selected_department:
+            doctors = selected_department.get("doctors", [])
+            if list_reply_id in [str(i + 1) for i in range(len(doctors))]:
+                selected_doctor = doctors[int(list_reply_id) - 1]
+                user_sessions[sender]["doctor"] = selected_doctor["id"]  # Store doctor_id instead of name
+                user_sessions[sender]["step"] = "name"
+                send_message(sender, get_translated_text("Please provide your name:", session["language"]))
+            else:
+                send_message(sender, get_translated_text("Invalid doctor selection. Please try again.", session["language"]))
     # Handling date selection
     elif step == "date":
         doctor_id = session.get("doctor")  # Get doctor ID from session
@@ -600,16 +601,16 @@ def send_doctor_list(sender, department_id):
 def send_date_list(sender, doctor_id):
     url = f"https://graph.facebook.com/v16.0/{phone_number_id}/messages"
     headers = {"Authorization": f"Bearer {GRAPH_API_TOKEN}"}
-    
-    # Fetch available dates for the doctor from the database
+
+    # Fetch available dates for the selected doctor from the database
     with get_db_connection().cursor() as cursor:
         cursor.execute("SELECT DISTINCT available_date FROM appointment_schedule WHERE doctor_id = %s", (doctor_id,))
-        available_dates = cursor.fetchall()  # Returns a list of tuples [(date,), (date,), ...]
+        dates = cursor.fetchall()  # Returns a list of tuples [(date), (date), ...]
 
     # Prepare sections for WhatsApp interactive list
     sections = [{
         "title": get_translated_text("Available Dates", user_sessions[sender]["language"]),
-        "rows": [{"id": str(date[0]), "title": str(date[0])} for date in available_dates]
+        "rows": [{"id": date[0], "title": date[0]} for date in dates]
     }]
     
     payload = {
@@ -622,7 +623,8 @@ def send_date_list(sender, doctor_id):
             "action": {"button": get_translated_text("Select", user_sessions[sender]["language"]), "sections": sections}
         }
     }
-    
+
+    # Send the date list via WhatsApp API
     response = requests.post(url, headers=headers, json=payload)
     print(f"Sent date list to {sender}: {response.json()}")
 def send_time_list(sender, doctor_id, selected_date):
