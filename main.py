@@ -423,11 +423,19 @@ def handle_text_message(sender, text):
             try:
                 age = int(text)
                 user_sessions[sender]["age"] = age
-                send_date_list(sender)
-                user_sessions[sender]["step"] = "date"
-            except ValueError:
-                send_message(sender, get_translated_text("Please enter a valid age.", session["language"]))
 
+        # Retrieve the doctor_id from the session
+                doctor_id = user_sessions[sender].get("doctor")
+
+        # Check if doctor_id is present in the session
+                if doctor_id:
+            # Call the function to send the available dates for the selected doctor
+                    send_date_list(sender, doctor_id)
+                    user_sessions[sender]["step"] = "date"
+                else:
+                    send_message(sender, "Doctor not selected. Please start over.")
+            except ValueError:
+                send_message(sender, get_translated_text("Please enter a valid age.", user_sessions[sender]["language"]))
         elif step == "confirm":
             if text.lower() == "confirm":
                 if session["department_name"] == "Cardiology":
