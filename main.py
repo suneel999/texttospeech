@@ -299,7 +299,7 @@ def handle_list_response(sender, list_reply_id):
     # Handling department selection
     if step == "department":
         # Fetch the selected department from the database
-        with get_db_connection.cursor() as cursor:
+        with get_db_connection().cursor() as cursor:
             cursor.execute("SELECT department_id, department_name FROM departments WHERE department_id = %s", (list_reply_id,))
             selected_department = cursor.fetchone()  # Fetch a single department
 
@@ -309,7 +309,7 @@ def handle_list_response(sender, list_reply_id):
             user_sessions[sender]["department_name"] = selected_department[1]
 
             # Fetch doctors associated with the selected department
-            with get_db_connection.cursor() as cursor:
+            with get_db_connection().cursor() as cursor:
                 cursor.execute("SELECT doctor_id, doctor_name FROM doctors WHERE department_id = %s", (selected_department[0],))
                 doctors = cursor.fetchall()
 
@@ -324,7 +324,7 @@ def handle_list_response(sender, list_reply_id):
         department_id = session.get("department")
 
         # Fetch doctors for the selected department
-        with get_db_connection.cursor() as cursor:
+        with get_db_connection().cursor() as cursor:
             cursor.execute("SELECT doctor_id, doctor_name FROM doctors WHERE department_id = %s", (department_id,))
             doctors = cursor.fetchall()
 
@@ -342,7 +342,7 @@ def handle_list_response(sender, list_reply_id):
         doctor_id = session.get("doctor")  # Get doctor ID from session
 
         # Fetch available dates from the database for the selected doctor
-        with get_db_connection.cursor() as cursor:
+        with get_db_connection().cursor() as cursor:
             cursor.execute("SELECT available_date FROM appointment_schedule WHERE doctor_id = %s", (doctor_id,))
             available_dates = cursor.fetchall()
 
@@ -353,7 +353,7 @@ def handle_list_response(sender, list_reply_id):
             print(f"Selected Date: {selected_date}")
 
             # Fetch available times for the selected date
-            with get_db_connection.cursor() as cursor:
+            with get_db_connection().cursor() as cursor:
                 cursor.execute("SELECT available_time FROM appointment_schedule WHERE doctor_id = %s AND available_date = %s", (doctor_id, selected_date))
                 available_times = cursor.fetchall()
 
@@ -372,7 +372,7 @@ def handle_list_response(sender, list_reply_id):
         doctor_id = user_sessions[sender]["doctor"]
 
         # Fetch available times from the database for the selected date and doctor
-        with get_db_connection.cursor() as cursor:
+        with get_db_connection().cursor() as cursor:
             cursor.execute("SELECT available_time FROM appointment_schedule WHERE doctor_id = %s AND available_date = %s", (doctor_id, selected_date))
             available_times = cursor.fetchall()
 
@@ -566,7 +566,7 @@ def send_doctor_list(sender, department_id):
     headers = {"Authorization": f"Bearer {GRAPH_API_TOKEN}"}
     
     # Fetch doctors from the database for the given department
-    with get_db_connection.cursor() as cursor:
+    with get_db_connection().cursor() as cursor:
         cursor.execute("SELECT doctor_id, doctor_name FROM doctors WHERE department_id = %s", (department_id,))
         doctors = cursor.fetchall()  # Returns a list of tuples [(id, name), (id, name), ...]
 
@@ -594,7 +594,7 @@ def send_date_list(sender, doctor_id):
     headers = {"Authorization": f"Bearer {GRAPH_API_TOKEN}"}
     
     # Fetch available dates for the doctor from the database
-    with get_db_connection.cursor() as cursor:
+    with get_db_connection().cursor() as cursor:
         cursor.execute("SELECT DISTINCT available_date FROM appointment_schedule WHERE doctor_id = %s", (doctor_id,))
         available_dates = cursor.fetchall()  # Returns a list of tuples [(date,), (date,), ...]
 
@@ -622,7 +622,7 @@ def send_time_list(sender, doctor_id, selected_date):
     headers = {"Authorization": f"Bearer {GRAPH_API_TOKEN}"}
     
     # Fetch available times for the doctor on the selected date from the database
-    with get_db_connection.cursor() as cursor:
+    with get_db_connection().cursor() as cursor:
         cursor.execute("SELECT available_time FROM appointment_schedule WHERE doctor_id = %s AND available_date = %s", (doctor_id, selected_date))
         available_times = cursor.fetchall()  # Returns a list of tuples [(time,), (time,), ...]
 
