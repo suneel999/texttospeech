@@ -538,7 +538,7 @@ def send_department_list(sender):
     headers = {"Authorization": f"Bearer {GRAPH_API_TOKEN}"}
     
     # Fetch departments from the database
-    with get_db_connection.cursor() as cursor:
+    with get_db_connection().cursor() as cursor:
         cursor.execute("SELECT department_id, department_name FROM departments")
         departments = cursor.fetchall()  # Returns a list of tuples [(id, name), (id, name), ...]
 
