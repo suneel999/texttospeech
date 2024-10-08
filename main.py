@@ -205,7 +205,7 @@ def submit_appointment():
     data = request.json
     name = data.get('name')
     email = data.get('email')
-    age = data.get('age')
+    #age = data.get('age')
     appointment_date = data.get('appointment_date')
     appointment_time = data.get('appointment_time')
     department = data.get('department')
@@ -377,22 +377,11 @@ def handle_text_message(sender, text):
         elif step == "email":
             if "@" in text and "." in text:
                 user_sessions[sender]["email"] = text
-                send_button_message(sender, get_translated_text("Please select your gender:", session["language"]), [
-                    {"id": "male", "title": get_translated_text("Male", session["language"])},
-                    {"id": "female", "title": get_translated_text("Female", session["language"])},
-                ])
-                user_sessions[sender]["step"] = "gender"
-            else:
-                send_message(sender, get_translated_text("Invalid email format. Please provide a valid email.", session["language"]))
-        elif step == "age":
-            try:
-                age = int(text)
-                user_sessions[sender]["age"] = age
                 send_date_list(sender)
                 user_sessions[sender]["step"] = "date"
-            except ValueError:
-                send_message(sender, get_translated_text("Please enter a valid age.", session["language"]))
-
+            else:
+                send_message(sender, get_translated_text("Invalid email format. Please provide a valid email.", session["language"]))
+       
         elif step == "confirm":
             if text.lower() == "confirm":
                 if session["department_name"] == "Cardiology":
