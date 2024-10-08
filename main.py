@@ -287,7 +287,6 @@ def handle_webhook():
             handle_text_message(sender, text)
 
     return jsonify({"status": "received"}), 200
-
 def handle_list_response(sender, list_reply_id):
     session = user_sessions.get(sender, {})
     if not session:
@@ -313,8 +312,11 @@ def handle_list_response(sender, list_reply_id):
                 cursor.execute("SELECT doctor_id, doctor_name FROM doctors WHERE department_id = %s", (selected_department[0],))
                 doctors = cursor.fetchall()
 
-            # Send the doctor list
-            send_doctor_list(sender, selected_department[0])
+            if doctors:
+                # Send the doctor list to the user
+                send_doctor_list(sender, selected_department[0], doctors)
+            else:
+                send_message(sender, get_translated_text("No doctors found in the selected department. Please try again.", session["language"]))
 
         else:
             send_message(sender, get_translated_text("Invalid department selection. Please try again.", session["language"]))
@@ -328,16 +330,18 @@ def handle_list_response(sender, list_reply_id):
             cursor.execute("SELECT doctor_id, doctor_name FROM doctors WHERE department_id = %s", (department_id,))
             doctors = cursor.fetchall()
 
-        # Check if the doctor selected is valid
-        if selected_department:
-            doctors = selected_department.get("doctors", [])
-            if list_reply_id in [str(i + 1) for i in range(len(doctors))]:
-                selected_doctor = doctors[int(list_reply_id) - 1]
-                user_sessions[sender]["doctor"] = selected_doctor["id"]  # Store doctor_id instead of name
-                user_sessions[sender]["step"] = "name"
-                send_message(sender, get_translated_text("Please provide your name:", session["language"]))
-            else:
-                send_message(sender, get_translated_text("Invalid doctor selection. Please try again.", session["language"]))
+        # Check if the selected doctor is valid
+        if list_reply_id.isdigit() and 0 < int(list_reply_id) <= len(doctors):
+            selected_doctor = doctors[int(list_reply_id) - 1]  # list_reply_id is 1-based index
+            user_sessions[sender]["doctor"] = selected_doctor[0]  # Store doctor_id
+            user_sessions[sender]["doctor_name"] = selected_doctor[1]
+            user_sessions[sender]["step"] = "date"
+
+            # Send date list for the selected doctor
+            send_date_list(sender, selected_doctor[0])
+        else:
+            send_message(sender, get_translated_text("Invalid doctor selection. Please try again.", session["language"]))
+
     # Handling date selection
     elif step == "date":
         doctor_id = session.get("doctor")  # Get doctor ID from session
@@ -369,8 +373,8 @@ def handle_list_response(sender, list_reply_id):
 
     # Handling time selection
     elif step == "time":
-        selected_date = user_sessions[sender]["selected_date"]
-        doctor_id = user_sessions[sender]["doctor"]
+        selected_date = session.get("selected_date")
+        doctor_id = session.get("doctor")
 
         # Fetch available times from the database for the selected date and doctor
         with get_db_connection().cursor() as cursor:
