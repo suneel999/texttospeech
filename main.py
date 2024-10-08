@@ -297,118 +297,64 @@ def handle_list_response(sender, list_reply_id):
     step = session.get("step")
 
     # Handling department selection
-    if step == "department":
-        # Fetch the selected department from the database
-        conn = get_db_connection()
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT department_id, department_name FROM departments WHERE department_id = %s", (list_reply_id,))
-            selected_department = cursor.fetchone()  # Fetch a single department
-
-        if selected_department:
-            user_sessions[sender]["step"] = "doctor"
-            user_sessions[sender]["department"] = selected_department[0]  # Store department_id
-            user_sessions[sender]["department_name"] = selected_department[1]  # Store department name
-
-            # Fetch doctors associated with the selected department
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT doctor_id, doctor_name FROM doctors WHERE department_id = %s", (selected_department[0],))
-                doctors = cursor.fetchall()
-
-            if doctors:
-                # Send the doctor list to the user
-                send_doctor_list(sender, doctors)
-            else:
-                send_message(sender, get_translated_text("No doctors found in the selected department. Please try again.", session["language"]))
-        else:
-            send_message(sender, get_translated_text("Invalid department selection. Please try again.", session["language"]))
-
-        conn.close()
+    if step == "department" and list_reply_id in departments:
+        selected_department = departments[list_reply_id]
+        user_sessions[sender]["step"] = "doctor"
+        user_sessions[sender]["department"] = list_reply_id
+        user_sessions[sender]["department_name"] = selected_department["name"]
+        send_doctor_list(sender, selected_department["doctors"])
 
     # Handling doctor selection
     elif step == "doctor" and "department" in session:
         department_id = session.get("department")
+        selected_department = departments.get(department_id)
 
-        # Fetch doctors for the selected department
-        conn = get_db_connection()
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT doctor_id, doctor_name FROM doctors WHERE department_id = %s", (department_id,))
-            doctors = cursor.fetchall()
-
-        # Check if the selected doctor is valid
-        if list_reply_id.isdigit() and 0 < int(list_reply_id) <= len(doctors):
-            selected_doctor = doctors[int(list_reply_id) - 1]  # list_reply_id is 1-based index
-            user_sessions[sender]["doctor"] = selected_doctor[0]  # Store doctor_id
-            user_sessions[sender]["doctor_name"] = selected_doctor[1]  # Store doctor name
-            user_sessions[sender]["step"] = "date"
-
-            # Send date list for the selected doctor
-            send_date_list(sender, selected_doctor[0])
+        if selected_department:
+            doctors = selected_department.get("doctors", [])
+            if list_reply_id in [str(i + 1) for i in range(len(doctors))]:
+                selected_doctor = doctors[int(list_reply_id) - 1]
+                user_sessions[sender]["doctor"] = selected_doctor
+                user_sessions[sender]["step"] = "name"
+                send_message(sender, get_translated_text("Please provide your name:", session["language"]))
+            else:
+                send_message(sender, get_translated_text("Invalid doctor selection. Please try again.", session["language"]))
         else:
-            send_message(sender, get_translated_text("Invalid doctor selection. Please try again.", session["language"]))
-
-        conn.close()
+            send_message(sender, get_translated_text("Department not found.", session["language"]))
 
     # Handling date selection
-    elif step == "date":
-        doctor_id = session.get("doctor")  # Get doctor ID from session
-
-        # Fetch available dates from the database for the selected doctor
-        conn = get_db_connection()
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT available_date FROM appointment_schedule WHERE doctor_id = %s", (doctor_id,))
-            available_dates = cursor.fetchall()
-
-        # Check if the selected date is valid
-        if list_reply_id in [str(date[0]) for date in available_dates]:
-            selected_date = list_reply_id
-            user_sessions[sender]["selected_date"] = selected_date
-            print(f"Selected Date: {selected_date}")
-
-            # Fetch available times for the selected date
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT available_time FROM appointment_schedule WHERE doctor_id = %s AND available_date = %s", (doctor_id, selected_date))
-                available_times = cursor.fetchall()
-
-            # Send the available times to the user
-            if available_times:
-                send_time_list(sender, [time[0] for time in available_times])
-                user_sessions[sender]["step"] = "time"
-            else:
-                send_message(sender, get_translated_text("Sorry, no times are available for this date. Please select another date.", session["language"]))
+    # Handle date selection and proceed to time selection
+    elif step == "date" and list_reply_id in fetch_available_dates_for_whatsapp():
+        selected_date = list_reply_id  # Store selected date from user response
+        user_sessions[sender]["selected_date"] = selected_date  # Save selected date in session
+    
+    # Log for debugging
+        print(f"Selected Date: {selected_date}")
+    
+    # Fetch available times for the selected date and send them
+        available_times = fetch_available_times_for_whatsapp(selected_date)
+    
+        if available_times:  # Check if times are fetched correctly
+            send_time_list(sender, available_times)  # Send the available times list
+            user_sessions[sender]["step"] = "time"  # Move to the time selection step
         else:
-            send_message(sender, get_translated_text("Invalid date selection. Please try again.", session["language"]))
+            # Log if no times are found for the selected date
+            print(f"No times found for selected date: {selected_date}")
+            send_message(sender, "Sorry, no times are available for this date. Please select another date.")
 
-        conn.close()
-
-    # Handling time selection
-    elif step == "time":
-        selected_date = session.get("selected_date")
-        doctor_id = session.get("doctor")
-
-        # Fetch available times from the database for the selected date and doctor
-        conn = get_db_connection()
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT available_time FROM appointment_schedule WHERE doctor_id = %s AND available_date = %s", (doctor_id, selected_date))
-            available_times = cursor.fetchall()
-
-        # Check if the selected time is valid
-        if list_reply_id in [str(time[0]) for time in available_times]:
-            selected_time = list_reply_id
-            user_sessions[sender]["selected_time"] = selected_time
-            print(f"Selected Time: {selected_time}")
-
-            # Send appointment summary and move to confirmation step
-            send_appointment_summary(sender)
-            user_sessions[sender]["step"] = "confirm"
-        else:
-            send_message(sender, get_translated_text("Invalid time selection. Please try again.", session["language"]))
-
-        conn.close()
+# Handle time selection and proceed to confirmation
+    elif step == "time" and list_reply_id in fetch_available_times_for_whatsapp(user_sessions[sender]["selected_date"]):
+        selected_time = list_reply_id  # Store selected time from user response
+        user_sessions[sender]["selected_time"] = selected_time  # Save selected time in session
+    
+    # Log for debugging
+        print(f"Selected Time: {selected_time}")
+    
+    # Send appointment summary and move to confirmation step
+        send_appointment_summary(sender)
+        user_sessions[sender]["step"] = "confirm"
 
     else:
         send_message(sender, get_translated_text("Invalid selection. Please try again.", session["language"]))
-
-
 
 def handle_text_message(sender, text):
 
@@ -555,124 +501,84 @@ def send_image(sender):
 def send_department_list(sender):
     url = f"https://graph.facebook.com/v16.0/{phone_number_id}/messages"
     headers = {"Authorization": f"Bearer {GRAPH_API_TOKEN}"}
-    
-    # Fetch departments from the database
-    conn = get_db_connection()
-    with conn.cursor() as cursor:
-        cursor.execute("SELECT department_id, department_name FROM departments")
-        departments = cursor.fetchall()  # Returns a list of tuples [(id, name), (id, name), ...]
-
-    # Prepare sections for WhatsApp interactive list
     sections = [{
         "title": get_translated_text("Departments", user_sessions[sender]["language"]),
-        "rows": [{"id": str(dept[0]), "title": dept[1]} for dept in departments]
+        "rows": [{"id": dept_id, "title": dept_info["name"]} for dept_id, dept_info in departments.items()]
     }]
-    
     payload = {
         "messaging_product": "whatsapp",
         "to": sender,
         "type": "interactive",
         "interactive": {
             "type": "list",
+            # "header": {"type": "text", "text": get_translated_text("Select Department", user_sessions[sender]["language"])},
             "body": {"text": get_translated_text("Please choose a department:", user_sessions[sender]["language"])},
             "action": {"button": get_translated_text("Select", user_sessions[sender]["language"]), "sections": sections}
         }
     }
-    
     response = requests.post(url, headers=headers, json=payload)
     print(f"Sent department list to {sender}: {response.json()}")
 
-def send_doctor_list(sender, department_id):
+def send_doctor_list(sender, doctors):
     url = f"https://graph.facebook.com/v16.0/{phone_number_id}/messages"
     headers = {"Authorization": f"Bearer {GRAPH_API_TOKEN}"}
-    
-    # Fetch doctors from the database for the given department
-    with get_db_connection().cursor() as cursor:
-        cursor.execute("SELECT doctor_id, doctor_name FROM doctors WHERE department_id = %s", (department_id,))
-        doctors = cursor.fetchall()  # Returns a list of tuples [(id, name), (id, name), ...]
-
-    # Prepare sections for WhatsApp interactive list
     sections = [{
         "title": get_translated_text("Doctors", user_sessions[sender]["language"]),
-        "rows": [{"id": str(doctor[0]), "title": doctor[1]} for doctor in doctors]
+        "rows": [{"id": str(i + 1), "title": doctor} for i, doctor in enumerate(doctors)]
     }]
-    
     payload = {
         "messaging_product": "whatsapp",
         "to": sender,
         "type": "interactive",
         "interactive": {
             "type": "list",
+            # "header": {"type": "text", "text": get_translated_text("Select Doctor", user_sessions[sender]["language"])},
             "body": {"text": get_translated_text("Please choose a doctor:", user_sessions[sender]["language"])},
             "action": {"button": get_translated_text("Select", user_sessions[sender]["language"]), "sections": sections}
         }
     }
-    
     response = requests.post(url, headers=headers, json=payload)
     print(f"Sent doctor list to {sender}: {response.json()}")
 
 def send_date_list(sender):
-    # Retrieve the selected doctor from the user session
-    doctor_id = user_sessions[sender]["doctor"]  
-
-    # Fetch available dates for the selected doctor
-    available_dates = fetch_available_dates_for_whatsapp(doctor_id)
-
     url = f"https://graph.facebook.com/v16.0/{phone_number_id}/messages"
     headers = {"Authorization": f"Bearer {GRAPH_API_TOKEN}"}
-
-    # Prepare sections for the list of available dates
     sections = [{
         "title": get_translated_text("Available Dates", user_sessions[sender]["language"]),
-        "rows": [{"id": date, "title": date} for date in available_dates]
+        "rows": [{"id": date, "title": date} for date in fetch_available_dates_for_whatsapp()]
     }]
-
-    # Payload for the WhatsApp message
     payload = {
         "messaging_product": "whatsapp",
         "to": sender,
         "type": "interactive",
         "interactive": {
             "type": "list",
+            # "header": {"type": "text", "text": get_translated_text("Select Date", user_sessions[sender]["language"])},
             "body": {"text": get_translated_text("Please choose a date:", user_sessions[sender]["language"])},
             "action": {"button": get_translated_text("Select", user_sessions[sender]["language"]), "sections": sections}
         }
     }
-
-    # Send the request to WhatsApp API
     response = requests.post(url, headers=headers, json=payload)
     print(f"Sent date list to {sender}: {response.json()}")
 
-def send_time_list(sender):
-    # Retrieve the selected doctor and date from the user session
-    doctor_id = user_sessions[sender]["doctor"]
-    selected_date = user_sessions[sender]["selected_date"]
-
-    # Fetch available times for the selected doctor and date
-    available_times = fetch_available_times_for_whatsapp(doctor_id, selected_date)
-
+def send_time_list(sender, times):
     url = f"https://graph.facebook.com/v16.0/{phone_number_id}/messages"
     headers = {"Authorization": f"Bearer {GRAPH_API_TOKEN}"}
-
-    # Prepare sections for the list of available times
     sections = [{
         "title": get_translated_text("Available Times", user_sessions[sender]["language"]),
-        "rows": [{"id": time, "title": time} for time in available_times]
+        "rows": [{"id": time, "title": time} for time in times]
     }]
-
-    # Payload for the WhatsApp message
     payload = {
         "messaging_product": "whatsapp",
         "to": sender,
         "type": "interactive",
         "interactive": {
             "type": "list",
+            # "header": {"type": "text", "text": get_translated_text("Select Time", user_sessions[sender]["language"])},
             "body": {"text": get_translated_text("Please choose a time:", user_sessions[sender]["language"])},
             "action": {"button": get_translated_text("Select", user_sessions[sender]["language"]), "sections": sections}
         }
     }
-
-    # Send the request to WhatsApp API
     response = requests.post(url, headers=headers, json=payload)
     print(f"Sent time list to {sender}: {response.json()}")
 
@@ -731,27 +637,6 @@ def send_appointment_summary(sender):
     send_message(sender, get_translated_text("Please confirm your appointment by replying 'Confirm' or reply 'Edit' to make changes.", session['language']))
 
 
-def fetch_available_dates_for_whatsapp(doctor_id):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    # Fetch available dates for the doctor from the database
-    cursor.execute("SELECT available_date FROM appointment_schedule WHERE doctor_id = %s", (doctor_id,))
-    available_dates = [row[0].strftime("%Y-%m-%d") for row in cursor.fetchall()]  # Convert to strings
-
-    conn.close()
-    return available_dates
-    
-def fetch_available_times_for_whatsapp(doctor_id, selected_date):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-
-    # Fetch available times for the selected date and doctor
-    cursor.execute("SELECT available_time FROM appointment_schedule WHERE doctor_id = %s AND available_date = %s", (doctor_id, selected_date))
-    available_times = [row[0] for row in cursor.fetchall()]  # Already stored as strings
-
-    conn.close()
-    return available_times
 
 
 def fetch_available_dates_for_whatsapp():
