@@ -205,7 +205,7 @@ def submit_appointment():
     data = request.json
     name = data.get('name')
     email = data.get('email')
-    #age = data.get('age')
+    age = data.get('age')
     appointment_date = data.get('appointment_date')
     appointment_time = data.get('appointment_time')
     department = data.get('department')
@@ -377,11 +377,22 @@ def handle_text_message(sender, text):
         elif step == "email":
             if "@" in text and "." in text:
                 user_sessions[sender]["email"] = text
-                send_date_list(sender)
-                user_sessions[sender]["step"] = "date"
+                send_button_message(sender, get_translated_text("Please select your gender:", session["language"]), [
+                    {"id": "male", "title": get_translated_text("Male", session["language"])},
+                    {"id": "female", "title": get_translated_text("Female", session["language"])},
+                ])
+                user_sessions[sender]["step"] = "gender"
             else:
                 send_message(sender, get_translated_text("Invalid email format. Please provide a valid email.", session["language"]))
-       
+        elif step == "age":
+            try:
+                age = int(text)
+                user_sessions[sender]["age"] = age
+                send_date_list(sender)
+                user_sessions[sender]["step"] = "date"
+            except ValueError:
+                send_message(sender, get_translated_text("Please enter a valid age.", session["language"]))
+
         elif step == "confirm":
             if text.lower() == "confirm":
                 if session["department_name"] == "Cardiology":
@@ -578,17 +589,17 @@ def send_appointment_summary(sender):
 
     # Insert the appointment data into the database with the updated fields
     insert_query = """
-    INSERT INTO appointments (sender, name, email, age, gender, department_name, doctor, selected_date, selected_time, language, created_at, status)
-    VALUES (%s, %s, %s, 0, 'male', %s, %s, %s, %s, %s, NOW(), 'Pending')
-"""
+        INSERT INTO appointments (sender, name, email, age, gender, department_name, doctor, selected_date, selected_time, language,created_at, status)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), 'Pending')
+    """
     
     # Appointment data tuple with the new fields included
     appointment_data = (
         sender,                              # Phone Number
         session['name'],                     # Name
         session['email'],                    # Email
-        #session['age'],                      # Age
-        #session['gender'],                   # Gender
+        session['age'],                      # Age
+        session['gender'],                   # Gender
         session['department_name'],          # Department
         session['doctor'],                   # Doctor
         session['selected_date'],            # Appointment Date
@@ -613,8 +624,8 @@ def send_appointment_summary(sender):
         f"{get_translated_text('Appointment Summary:', session['language'])}\n"
         f"{get_translated_text('Name:', session['language'])} {session['name']}\n"
         f"{get_translated_text('Email:', session['language'])} {session['email']}\n"
-        #f"{get_translated_text('Age:', session['language'])} {session['age']}\n"
-        #f"{get_translated_text('Gender:', session['language'])} {session['gender']}\n"
+        f"{get_translated_text('Age:', session['language'])} {session['age']}\n"
+        f"{get_translated_text('Gender:', session['language'])} {session['gender']}\n"
         f"{get_translated_text('Department:', session['language'])} {session['department_name']}\n"
         f"{get_translated_text('Doctor:', session['language'])} {session['doctor']}\n"
         f"{get_translated_text('Date:', session['language'])} {session['selected_date']}\n"
@@ -730,4 +741,3 @@ def get_translated_text(text, language):
 
 if __name__ == "__main__":
     app.run(port=PORT, debug=True)
-
