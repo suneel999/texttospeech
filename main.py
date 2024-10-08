@@ -578,17 +578,17 @@ def send_appointment_summary(sender):
 
     # Insert the appointment data into the database with the updated fields
     insert_query = """
-        INSERT INTO appointments (sender, name, email, age, gender, department_name, doctor, selected_date, selected_time, language,created_at, status)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), 'Pending')
-    """
+    INSERT INTO appointments (sender, name, email, age, gender, department_name, doctor, selected_date, selected_time, language, created_at, status)
+    VALUES (%s, %s, %s, 0, 'male', %s, %s, %s, %s, %s, NOW(), 'Pending')
+"""
     
     # Appointment data tuple with the new fields included
     appointment_data = (
         sender,                              # Phone Number
         session['name'],                     # Name
         session['email'],                    # Email
-        session['age'],                      # Age
-        session['gender'],                   # Gender
+        #session['age'],                      # Age
+        #session['gender'],                   # Gender
         session['department_name'],          # Department
         session['doctor'],                   # Doctor
         session['selected_date'],            # Appointment Date
@@ -613,8 +613,8 @@ def send_appointment_summary(sender):
         f"{get_translated_text('Appointment Summary:', session['language'])}\n"
         f"{get_translated_text('Name:', session['language'])} {session['name']}\n"
         f"{get_translated_text('Email:', session['language'])} {session['email']}\n"
-        f"{get_translated_text('Age:', session['language'])} {session['age']}\n"
-        f"{get_translated_text('Gender:', session['language'])} {session['gender']}\n"
+        #f"{get_translated_text('Age:', session['language'])} {session['age']}\n"
+        #f"{get_translated_text('Gender:', session['language'])} {session['gender']}\n"
         f"{get_translated_text('Department:', session['language'])} {session['department_name']}\n"
         f"{get_translated_text('Doctor:', session['language'])} {session['doctor']}\n"
         f"{get_translated_text('Date:', session['language'])} {session['selected_date']}\n"
