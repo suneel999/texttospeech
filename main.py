@@ -13,7 +13,7 @@ WEBHOOK_VERIFY_TOKEN = os.environ.get("WEBHOOK_VERIFY_TOKEN", "tested")
 GRAPH_API_TOKEN = os.environ.get("GRAPH_API_TOKEN", "EAAXbZCUeswOkBO2gXsPZC9gXHqMSyGXhvTZAcCRLvLmlSivveAzkMhBtTguHCQSykdNTDj3KP6qOvjyWO7YRCCeBzt0ulyKTjB16MVRv8CZAKedjfeqbSo7hVJCLVY3CYEAbm8QMPaZAmXlS6S52UpB1NZBkpgj0ui8ahXUVj1TlOmR4aTLVCDWb1OOMZC8ZBDUNLgZDZD")  # Replace with actual token
 PORT = os.environ.get("PORT", 5000)
 phone_number_id = "389016260968767"
-media_id = "1041743297349776"  # Media ID from the previous response
+media_id = "1262504498532543"  # Media ID from the previous response
 
 user_sessions = {}
 
