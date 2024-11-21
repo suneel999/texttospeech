@@ -643,7 +643,7 @@ def send_appointment_summary(sender):
 def fetch_available_dates_for_whatsapp():
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT available_date FROM available_dates")
+    cursor.execute("SELECT * FROM available_dates ORDER BY available_date;")
     available_dates = [row[0].strftime("%Y-%m-%d") for row in cursor.fetchall()]  # Convert to strings
     conn.close()
     return available_dates
