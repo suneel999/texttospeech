@@ -333,9 +333,9 @@ def handle_list_response(sender, list_reply_id):
     # Fetch available times for the selected date and send them
         available_times = fetch_available_times_for_whatsapp(selected_date)
 
-        # Send appointment summary and move to confirmation step
-#         send_appointment_summary(sender)
-#         user_sessions[sender]["step"] = "confirm"  # Move directly to confirmation step
+    
+        send_appointment_summary(sender)
+        user_sessions[sender]["step"] = "confirm"  # Move directly to confirmation step
     
 #         if available_times:  # Check if times are fetched correctly
 #             send_time_list(sender, available_times)  # Send the available times list
