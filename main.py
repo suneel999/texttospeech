@@ -591,13 +591,13 @@ def send_appointment_summary(sender):
     connection = get_db_connection()
     cursor = connection.cursor()
 
-    # Insert the appointment data into the database with the updated fields
+    # Insert the appointment data into the database with the updated fields (without selected_time)
     insert_query = """
-        INSERT INTO appointments (sender, name, email, age, gender, department_name, doctor, selected_date, selected_time, language,created_at, status)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), 'Pending')
+        INSERT INTO appointments (sender, name, email, age, gender, department_name, doctor, selected_date, language, created_at, status)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), 'Pending')
     """
     
-    # Appointment data tuple with the new fields included
+    # Appointment data tuple with the new fields included (no selected_time)
     appointment_data = (
         sender,                              # Phone Number
         session['name'],                     # Name
@@ -607,7 +607,6 @@ def send_appointment_summary(sender):
         session['department_name'],          # Department
         session['doctor'],                   # Doctor
         session['selected_date'],            # Appointment Date
-        session['selected_time'],            # Appointment Time
         session['language']                  # Language
     )
 
@@ -623,7 +622,7 @@ def send_appointment_summary(sender):
         cursor.close()
         connection.close()
 
-    # Prepare and send the appointment summary
+    # Prepare and send the appointment summary without the time field
     summary = (
         f"{get_translated_text('Appointment Summary:', session['language'])}\n"
         f"{get_translated_text('Name:', session['language'])} {session['name']}\n"
@@ -633,7 +632,6 @@ def send_appointment_summary(sender):
         f"{get_translated_text('Department:', session['language'])} {session['department_name']}\n"
         f"{get_translated_text('Doctor:', session['language'])} {session['doctor']}\n"
         f"{get_translated_text('Date:', session['language'])} {session['selected_date']}\n"
-        f"{get_translated_text('Time:', session['language'])} {session['selected_time']}\n"
     )
     
     # Send the summary to the user
