@@ -332,26 +332,30 @@ def handle_list_response(sender, list_reply_id):
     
     # Fetch available times for the selected date and send them
         available_times = fetch_available_times_for_whatsapp(selected_date)
-    
-        if available_times:  # Check if times are fetched correctly
-            send_time_list(sender, available_times)  # Send the available times list
-            user_sessions[sender]["step"] = "time"  # Move to the time selection step
-        else:
-            # Log if no times are found for the selected date
-            print(f"No times found for selected date: {selected_date}")
-            send_message(sender, "Sorry, no times are available for this date. Please select another date.")
 
-# Handle time selection and proceed to confirmation
-    elif step == "time" and list_reply_id in fetch_available_times_for_whatsapp(user_sessions[sender]["selected_date"]):
-        selected_time = list_reply_id  # Store selected time from user response
-        user_sessions[sender]["selected_time"] = selected_time  # Save selected time in session
+        # Send appointment summary and move to confirmation step
+#         send_appointment_summary(sender)
+#         user_sessions[sender]["step"] = "confirm"  # Move directly to confirmation step
     
-    # Log for debugging
-        print(f"Selected Time: {selected_time}")
+#         if available_times:  # Check if times are fetched correctly
+#             send_time_list(sender, available_times)  # Send the available times list
+#             user_sessions[sender]["step"] = "time"  # Move to the time selection step
+#         else:
+#             # Log if no times are found for the selected date
+#             print(f"No times found for selected date: {selected_date}")
+#             send_message(sender, "Sorry, no times are available for this date. Please select another date.")
+
+# # Handle time selection and proceed to confirmation
+#     elif step == "time" and list_reply_id in fetch_available_times_for_whatsapp(user_sessions[sender]["selected_date"]):
+#         selected_time = list_reply_id  # Store selected time from user response
+#         user_sessions[sender]["selected_time"] = selected_time  # Save selected time in session
     
-    # Send appointment summary and move to confirmation step
-        send_appointment_summary(sender)
-        user_sessions[sender]["step"] = "confirm"
+#     # Log for debugging
+#         print(f"Selected Time: {selected_time}")
+    
+#     # Send appointment summary and move to confirmation step
+#         send_appointment_summary(sender)
+#         user_sessions[sender]["step"] = "confirm"
 
     else:
         send_message(sender, get_translated_text("Invalid selection. Please try again.", session["language"]))
