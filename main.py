@@ -19,7 +19,7 @@ user_sessions = {}
 
 departments = {
     "1": {"name": "Cardiology", "doctors": ["Dr.M.S.S.Mukharjee", "Dr.Movva Srinivas", "Dr.Vinod K.Unni", "Dr.R.V.Venkata Rao", "Dr.Vikash Shukla"]},
-    "2": {"name": "Critical Care", "doctors": ["Dr.Nanda Kishore J", "Dr.Chandresh Kumar"]},
+    # "2": {"name": "Critical Care", "doctors": ["Dr.Nanda Kishore J", "Dr.Chandresh Kumar"]},
     "3": {"name": "Gynaecology", "doctors": ["Dr.Madhuri Movva"]},
     "4": {"name": "Pulmonology", "doctors": ["Dr. Rajesh.A"]},
     "5": {"name": "Cardio-Thoracic Surgery", "doctors": ["Dr.T.Vamshidhar"]},
