@@ -18,19 +18,18 @@ media_id = "1262504498532543"  # Media ID from the previous response
 user_sessions = {}
 
 departments = {
-    "1": {"name": "Cardiology", "doctors": ["Dr.M.S.S.Mukharjee","Dr.Movva Srinivas", "Dr.Vinod K.Unni", "Dr.R.V.Venkata Rao",,"Dr.Vikash Shukla"]},
+    "1": {"name": "Cardiology", "doctors": ["Dr.M.S.S.Mukharjee", "Dr.Movva Srinivas", "Dr.Vinod K.Unni", "Dr.R.V.Venkata Rao", "Dr.Vikash Shukla"]},
     "2": {"name": "Critical Care", "doctors": ["Dr.Nanda Kishore J", "Dr.Chandresh Kumar"]},
     "3": {"name": "Gynaecology", "doctors": ["Dr.Madhuri Movva"]},
     "4": {"name": "Pulmonology", "doctors": ["Dr. Rajesh.A"]},
     "5": {"name": "Cardio-Thoracic Surgery", "doctors": ["Dr.T.Vamshidhar"]},
     "6": {"name": "Orthopedics", "doctors": ["Dr.Sai Chandra"]},
-    "7": {"name": "Nephrology", "doctors": ["Dr.J.A.L.Ranganath","Dr. Rahul Patibandla"]},
+    "7": {"name": "Nephrology", "doctors": ["Dr.J.A.L.Ranganath", "Dr. Rahul Patibandla"]},
     "8": {"name": "Dermatology", "doctors": ["Dr.Sanjusha Kuncha"]},
-    "9": {"name": "Neurology", "doctors": ["Dr.Ch.Sita","Dr.Sasidhar Pamulapati"]},
-    "10": {"name": "Urology", "doctors": ["Dr.Rama Sanjay Y","Dr.Avinash Gottumukkala"]},
+    "9": {"name": "Neurology", "doctors": ["Dr.Ch.Sita", "Dr.Sasidhar Pamulapati"]},
+    "10": {"name": "Urology", "doctors": ["Dr.Rama Sanjay Y", "Dr.Avinash Gottumukkala"]},
     # Add remaining departments and doctors here
 }
-
 
 def get_db_connection():
     connection = psycopg2.connect(
