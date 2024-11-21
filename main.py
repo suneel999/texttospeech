@@ -404,7 +404,7 @@ def handle_text_message(sender, text):
                 
         
 
-Congratulations! Your appointment with  {session['doctor']} is confirmed for  {session['selected_date']} at  {session['selected_time']}.
+Congratulations! Your appointment with  {session['doctor']} is confirmed for  {session['selected_date']} and you will get the call for time slot with in 10 minutes from our side.
 
 Please note that hospital visits usually take about 2 hours, and delays may occur due to emergencies.
 
